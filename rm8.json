@@ -1,0 +1,16 @@
+{
+  "up": "Up",
+  "down": "Down",
+  "left": "Left",
+  "right": "Right",
+  "shift": "Left Shift",
+  "play": "Space",
+  "edit": "Left Ctrl",
+  "option": "Left Alt",
+  "keyjazz": "Return",
+  "octave_plus": "]",
+  "octave_minus": "[",
+  "velocity_plus": "=",
+  "velocity_minus": "-",
+  "fullscreen": false
+}

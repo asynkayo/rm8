@@ -1,0 +1,6 @@
+max_width = 100
+hard_tabs = true
+struct_field_align_threshold = 15
+struct_lit_width = 100
+struct_variant_width = 100
+use_small_heuristics = "Max"

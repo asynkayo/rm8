@@ -1,0 +1,19 @@
+[package]
+name = "rm8"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+lto = true
+#strip = true
+panic = "abort"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ctrlc = "3.2.1"
+sdl2 = "0.35.1"
+serde = "1.0.131"
+serde_derive = "1.0.131"
+serde_json = "1.0.72"
+serialport = "4.0.1"
