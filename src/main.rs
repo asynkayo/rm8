@@ -923,6 +923,7 @@ enum Action {
 const USAGE: &str = "Usage rm8 [options]
 Available options:
 	-help		Display this help screen
+	-version	Display the version of the program
 	-list		List available M8 devices
 	-dev DEVICE	Connect to the the given M8 device
 	-wc		Write the default configuration to the standard output
@@ -936,6 +937,7 @@ fn handle_command_line(
 ) -> Result<Action, String> {
 	let mut args = std::env::args().skip(1);
 	match (args.next().as_deref(), args.next()) {
+		(Some("-version"), None) => println!("rm8 v{}", env!("CARGO_PKG_VERSION")),
 		(Some("-help"), None) => eprintln!("{}", USAGE),
 		(Some("-list"), None) => {
 			let ports = M8::list_ports().map_err(|e| e.to_string())?;
