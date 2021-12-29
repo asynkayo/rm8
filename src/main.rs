@@ -12,7 +12,7 @@ use sdl2::{
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serialport::{available_ports, ErrorKind, SerialPort, SerialPortType};
 use std::{
-	io::{self, Write},
+	io::Write,
 	mem,
 	sync::{
 		atomic::{AtomicBool, Ordering},
@@ -21,86 +21,8 @@ use std::{
 	time::Duration,
 };
 
-const SLIP_END: u8 = 0xc0;
-const SLIP_ESC: u8 = 0xdb;
-const SLIP_ESC_END: u8 = 0xdc;
-const SLIP_ESC_ESC: u8 = 0xdd;
-
-enum SlipState {
-	Normal,
-	Escape,
-}
-
-struct Slip<const N: usize> {
-	state: SlipState,
-	buf: [u8; N],
-	rmax: usize,
-	rpos: usize,
-	wpos: usize,
-}
-
-impl<const N: usize> Slip<N> {
-	fn new() -> Self {
-		Self { state: SlipState::Normal, buf: [0; N], rmax: 0, rpos: 0, wpos: 0 }
-	}
-
-	fn push_byte(&mut self, byte: u8, buf: &mut [u8]) -> Result<(), String> {
-		if self.wpos >= buf.len() {
-			self.wpos = 0;
-			return Err("push_byte overflow".to_string());
-		}
-		buf[self.wpos] = byte;
-		self.wpos += 1;
-		Ok(())
-	}
-
-	fn read<'a>(
-		&mut self,
-		port: &mut Box<dyn SerialPort>,
-		buf: &'a mut [u8],
-	) -> Result<Option<&'a [u8]>, String> {
-		loop {
-			if self.rpos >= self.rmax {
-				self.rpos = 0;
-				match port.read(&mut self.buf) {
-					Ok(n) => self.rmax = n,
-					Err(e) if e.kind() == io::ErrorKind::TimedOut => self.rmax = 0,
-					Err(e) => return Err(e.to_string()),
-				}
-				if self.rmax == 0 {
-					return Ok(None);
-				}
-			}
-			while self.rpos < self.rmax {
-				let byte = self.buf[self.rpos];
-				match self.state {
-					SlipState::Normal => match byte {
-						SLIP_END if self.wpos > 1 => {
-							self.rpos += 1;
-							let end = self.wpos;
-							self.wpos = 0;
-							return Ok(Some(&buf[..end]));
-						}
-						SLIP_END => return Err("empty command".to_string()),
-						SLIP_ESC => {
-							self.state = SlipState::Escape;
-							self.rpos += 1;
-							continue;
-						}
-						_ => self.push_byte(byte, buf)?,
-					},
-					SlipState::Escape => match byte {
-						SLIP_ESC_END => self.push_byte(SLIP_END, buf)?,
-						SLIP_ESC_ESC => self.push_byte(SLIP_ESC, buf)?,
-						_ => return Err(format!("invalid escape sequence: {:02x}", byte)),
-					},
-				}
-				self.state = SlipState::Normal;
-				self.rpos += 1;
-			}
-		}
-	}
-}
+mod slip;
+use slip::Slip;
 
 struct Value<T> {
 	value: T,
