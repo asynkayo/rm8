@@ -1,8 +1,8 @@
-use std::time::Duration;
 use serialport::{available_ports, ErrorKind, SerialPort, SerialPortType};
+use std::time::Duration;
 
-use crate::value::Value;
 use crate::slip::Slip;
+use crate::value::Value;
 
 const VENDOR_ID: u16 = 0x16c0;
 const PRODUCT_ID: u16 = 0x048a;

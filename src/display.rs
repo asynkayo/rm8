@@ -3,9 +3,9 @@ use std::time;
 use sdl2::pixels;
 use sdl2::{rect, render, video};
 
-use crate::m8;
-use crate::font;
 use crate::config::Remap;
+use crate::font;
+use crate::m8;
 
 pub struct Display {
 	pub bg: pixels::Color,
@@ -226,7 +226,10 @@ impl Display {
 		!matches!(canvas.window().fullscreen_state(), video::FullscreenType::Off)
 	}
 
-	pub fn toggle_fullscreen(&self, canvas: &mut render::Canvas<video::Window>) -> Result<(), String> {
+	pub fn toggle_fullscreen(
+		&self,
+		canvas: &mut render::Canvas<video::Window>,
+	) -> Result<(), String> {
 		match canvas.window().fullscreen_state() {
 			video::FullscreenType::Off => {
 				canvas.window_mut().set_fullscreen(video::FullscreenType::True)

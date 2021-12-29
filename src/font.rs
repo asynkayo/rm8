@@ -1,7 +1,9 @@
 use sdl2::{pixels, render, video};
 use std::mem;
 
-pub fn init(creator: &render::TextureCreator<video::WindowContext>) -> Result<render::Texture, String> {
+pub fn init(
+	creator: &render::TextureCreator<video::WindowContext>,
+) -> Result<render::Texture, String> {
 	let mut font = creator
 		.create_texture_static(pixels::PixelFormatEnum::ARGB8888, WIDTH, HEIGHT)
 		.map_err(|e| e.to_string())?;

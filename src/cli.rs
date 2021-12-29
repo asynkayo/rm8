@@ -5,8 +5,8 @@ pub enum Action {
 	Return,
 }
 
-use crate::m8::M8;
 use crate::config::Config;
+use crate::m8::M8;
 
 const USAGE: &str = "Usage rm8 [options]
 Available options:

@@ -1,5 +1,5 @@
+use sdl2::keyboard::Scancode;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use sdl2::keyboard::{Scancode};
 
 use crate::m8;
 
@@ -304,4 +304,3 @@ impl Remap {
 		config.check_overlap();
 	}
 }
-
