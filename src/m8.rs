@@ -17,14 +17,15 @@ const MIN_OCTAVE: u8 = 0;
 const MAX_OCTAVE: u8 = 10;
 const MIN_VELOCITY: u8 = 0;
 const MAX_VELOCITY: u8 = 127;
-pub const KEYS_EDIT: u8 = 1;
-pub const KEYS_OPTION: u8 = 1 << 1;
-pub const KEYS_RIGHT: u8 = 1 << 2;
-pub const KEYS_PLAY: u8 = 1 << 3;
-pub const KEYS_SHIFT: u8 = 1 << 4;
-pub const KEYS_DOWN: u8 = 1 << 5;
-pub const KEYS_UP: u8 = 1 << 6;
-pub const KEYS_LEFT: u8 = 1 << 7;
+pub const KEY_EDIT: u8 = 1;
+pub const KEY_OPTION: u8 = 1 << 1;
+pub const KEY_RIGHT: u8 = 1 << 2;
+pub const KEY_PLAY: u8 = 1 << 3;
+pub const KEY_SHIFT: u8 = 1 << 4;
+pub const KEY_DOWN: u8 = 1 << 5;
+pub const KEY_UP: u8 = 1 << 6;
+pub const KEY_LEFT: u8 = 1 << 7;
+pub const KEY_DIR: u8 = KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT;
 
 pub enum Command<'a> {
 	#[allow(dead_code)]
@@ -141,7 +142,7 @@ impl M8 {
 			},
 			Ok(None) => Ok(None),
 			Ok(_) => Err("empty command".to_string()),
-			Err(e) => Err(format!("read failed: {:?}", e)),
+			Err(e) => Err(format!("read failed: {}", e)),
 		}
 	}
 
@@ -149,7 +150,7 @@ impl M8 {
 		match self.port.write(buf) {
 			Ok(n) if n != buf.len() => Err("failed to write command".to_string()),
 			Ok(_) => Ok(()),
-			Err(e) => Err(format!("write failed: {:?}", e)),
+			Err(e) => Err(format!("write failed: {}", e)),
 		}
 	}
 
@@ -158,6 +159,7 @@ impl M8 {
 	}
 
 	pub fn reset_display(&mut self) -> Result<(), String> {
+		self.refresh_keyjazz();
 		self.write("R".as_bytes())
 	}
 
@@ -170,7 +172,20 @@ impl M8 {
 			let _ = self.disconnect()?;
 			std::thread::sleep(std::time::Duration::from_millis(10));
 		}
+		self.refresh_keyjazz();
 		self.enable_and_reset_display()
+	}
+
+	fn refresh_keyjazz(&mut self) {
+		if *self.keyjazz {
+			self.velocity.set_changed();
+			self.octave.set_changed();
+		}
+	}
+
+	pub fn refresh(&mut self) {
+		self.refresh_keyjazz();
+		self.keys.set(0);
 	}
 
 	pub fn send_keyjazz(&mut self) -> Result<(), String> {

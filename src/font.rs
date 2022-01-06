@@ -5,7 +5,7 @@ pub fn init(
 	creator: &render::TextureCreator<video::WindowContext>,
 ) -> Result<render::Texture, String> {
 	let mut font = creator
-		.create_texture_static(pixels::PixelFormatEnum::ARGB8888, WIDTH, HEIGHT)
+		.create_texture_static(pixels::PixelFormatEnum::ARGB8888, WIDTH as u32, HEIGHT as u32)
 		.map_err(|e| e.to_string())?;
 
 	let mut pixels32 =
@@ -21,12 +21,16 @@ pub fn init(
 	Ok(font)
 }
 
-pub const WIDTH: u32 = 128;
-pub const HEIGHT: u32 = 64;
-pub const CHARS_BY_ROW: u32 = 16;
-pub const CHARS_BY_COL: u32 = 8;
-pub const CHAR_WIDTH: u32 = WIDTH / CHARS_BY_ROW;
-pub const CHAR_HEIGHT: u32 = HEIGHT / CHARS_BY_COL;
+pub fn width(len: usize) -> i32 {
+	len as i32 * CHAR_WIDTH + CHAR_WIDTH
+}
+
+pub const WIDTH: i32 = 128;
+pub const HEIGHT: i32 = 64;
+pub const CHARS_BY_ROW: i32 = 16;
+pub const CHARS_BY_COL: i32 = 8;
+pub const CHAR_WIDTH: i32 = WIDTH / CHARS_BY_ROW;
+pub const CHAR_HEIGHT: i32 = HEIGHT / CHARS_BY_COL;
 const DATA: &[u8] = &[
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	0xff, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0,

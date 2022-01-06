@@ -1,48 +1,62 @@
 #[macro_use]
 extern crate serde_derive;
 
-use sdl2::event::Event;
-use sdl2::keyboard::{Keycode, Mod, Scancode};
-use sdl2::pixels::PixelFormatEnum;
-use sdl2::video;
+use sdl2::{
+	event::Event,
+	keyboard::{Keycode, Mod},
+	pixels::PixelFormatEnum,
+	video,
+};
 use std::{
 	sync::{
-		atomic::{AtomicBool, Ordering},
+		atomic::{self, AtomicBool},
 		Arc,
 	},
+	thread,
 	time::Duration,
 };
 
+mod app;
+mod cli;
+mod config;
+mod config_command;
+mod config_font;
+mod config_joystick;
+mod config_keycode;
+mod config_rgb;
+mod draw;
 mod font;
 mod m8;
+mod menu;
+mod menu_tools;
+mod nav;
+mod nav_item;
+mod nav_page;
+mod remap;
 mod slip;
 mod value;
-use m8::{Command, M8};
-mod config;
-use config::{Config, Remap};
-mod cli;
-mod display;
-use display::Display;
+
+use app::App;
+use config::Rgb;
+use m8::M8;
 
 fn main() -> Result<(), String> {
-	let mut config = Config::default();
-	let _ = config.read(config::FILE);
+	let mut app = App::new();
+	let _ = app.config_mut().read(app::CONFIG_FILE);
+
+	let running = Arc::new(AtomicBool::new(true));
+	let run = running.clone();
+
+	ctrlc::set_handler(move || run.store(false, atomic::Ordering::SeqCst))
+		.map_err(|e| e.to_string())?;
 
 	// process command line arguments
 	let mut device: Option<String> = None;
 	let mut config_file: Option<String> = None;
-	if let cli::Action::Return =
-		cli::handle_command_line(&mut config, &mut config_file, &mut device)?
-	{
+	if !cli::handle_command_line(app.config_mut(), &mut config_file, &mut device)? {
 		return Ok(());
 	}
 
-	let running = Arc::new(AtomicBool::new(true));
-	let run = running.clone();
-	ctrlc::set_handler(move || run.store(false, Ordering::SeqCst)).map_err(|e| e.to_string())?;
-
-	// initialize M8 display helpers
-	let mut display = Display::new();
 	// detect and connect to M8
 	let mut m8 = match device {
 		Some(dev) => M8::open(dev),
@@ -50,19 +64,20 @@ fn main() -> Result<(), String> {
 	}
 	.map_err(|e| e.to_string())?;
 	m8.enable_and_reset_display()?;
-	m8.keyjazz.set(!config.overlap);
+	m8.keyjazz.set(!app.config().overlap);
 
-	// initialize SDL
 	let sdl_context = sdl2::init()?;
+	let joystick_subsystem = sdl_context.joystick()?;
 	let video_subsystem = sdl_context.video()?;
+	let zoom = app.config().app.zoom;
 	let mut window = video_subsystem
-		.window("rm8", m8::SCREEN_WIDTH * 4, m8::SCREEN_HEIGHT * 4)
+		.window("rm8", m8::SCREEN_WIDTH * zoom, m8::SCREEN_HEIGHT * zoom)
 		.position_centered()
 		.opengl()
 		.resizable()
 		.build()
 		.map_err(|e| e.to_string())?;
-	window.set_fullscreen(if config.fullscreen {
+	window.set_fullscreen(if app.config().app.fullscreen {
 		video::FullscreenType::True
 	} else {
 		video::FullscreenType::Off
@@ -78,143 +93,172 @@ fn main() -> Result<(), String> {
 
 	let mut font = font::init(&creator)?;
 
-	let mut remap: Option<Remap> = None;
-
 	let mut event_pump = sdl_context.event_pump()?;
-	while running.load(Ordering::SeqCst) {
+	while running.load(atomic::Ordering::SeqCst) {
 		for event in event_pump.poll_iter() {
 			match event {
-				Event::Quit { .. } => return Ok(()),
-				Event::KeyDown {
-					keycode: Some(keycode),
-					scancode: Some(scancode),
-					keymod: mods,
-					..
-				} => {
-					if let Some(ref mut remapping) = remap {
+				Event::Quit { .. } => {
+					running.store(false, atomic::Ordering::SeqCst);
+					continue;
+				}
+				Event::KeyDown { keycode: Some(keycode), keymod, repeat, .. } => {
+					if keycode == Keycode::Escape {
+						if app.config_mode() {
+							if app.remap_mode() {
+								app.cancel_remap_mode();
+								continue;
+							}
+							app.cancel_config_mode();
+							m8.refresh();
+						} else if draw::is_fullscreen(&canvas) {
+							draw::toggle_fullscreen(&mut canvas)?;
+						} else {
+							running.store(false, atomic::Ordering::SeqCst);
+						}
+						continue;
+					}
+					if repeat || app.remap_mode() {
+						continue;
+					}
+					if keymod.intersects(Mod::LALTMOD | Mod::RALTMOD) {
 						match keycode {
-							Keycode::Escape => remap = None,
-							_ => {
-								if remapping.done() {
-									continue;
-								}
-								remapping.map(scancode);
-								if remapping.done() {
-									remapping.write(&mut config);
-									config.write(config_file.as_deref().unwrap_or(config::FILE))?;
-								}
+							Keycode::Return => {
+								draw::toggle_fullscreen(&mut canvas)?;
+								continue;
+							}
+							Keycode::C if !app.config_mode() => {
+								app.start_config_mode();
+								m8.reset_display()?;
+								continue;
+							}
+							Keycode::R if !app.config_mode() => {
+								m8.reset(keymod.intersects(Mod::LSHIFTMOD | Mod::RSHIFTMOD))?;
+								continue;
+							}
+							_ => {}
+						}
+					}
+
+					if !app.config_mode() {
+						let config = app.config();
+						if keycode == *config.rm8.keyjazz {
+							m8.keyjazz.toggle();
+						}
+						if !config.overlap || *m8.keyjazz {
+							if let Some(n) = config.keyjazz.get(&keycode.into()) {
+								m8.set_note(*n);
 							}
 						}
-						continue;
 					}
-					if scancode == Scancode::Escape {
-						if display.is_fullscreen(&canvas) {
-							display.toggle_fullscreen(&mut canvas)?;
-						} else {
-							running.store(false, Ordering::SeqCst);
+					app.handle_key(&mut m8, keycode, keymod, false);
+				}
+				Event::KeyUp { keycode: Some(keycode), keymod, .. } => {
+					if app.remap_mode() {
+						if app.remap(keycode) {
+							app.cancel_remap_mode();
 						}
 						continue;
-					} else if mods.intersects(Mod::LALTMOD | Mod::RALTMOD)
-						&& scancode == Scancode::Return
-					{
-						display.toggle_fullscreen(&mut canvas)?;
-					} else if mods.intersects(Mod::LCTRLMOD | Mod::RCTRLMOD)
-						&& keycode == Keycode::R
-					{
-						remap = Some(Remap::new());
-						m8.reset_display()?;
-						continue;
-					} else if mods.intersects(Mod::LSHIFTMOD | Mod::RSHIFTMOD)
-						&& keycode == Keycode::R
-					{
-						m8.reset(mods.intersects(Mod::LALTMOD | Mod::RALTMOD))?;
-						continue;
-					} else if scancode == *config.keyjazz {
-						m8.keyjazz.toggle();
 					}
-					if !config.overlap || *m8.keyjazz {
-						config.handle_keyjazz(
-							&mut m8,
-							scancode,
-							mods.intersects(Mod::LSHIFTMOD | Mod::RSHIFTMOD),
-						);
-					}
-					if !config.overlap || !*m8.keyjazz {
-						config.handle_keys(&mut m8, scancode, true);
-					}
+					app.handle_key(&mut m8, keycode, keymod, true);
 				}
-				Event::KeyUp { scancode: Some(scancode), .. } => {
-					if remap.is_some() {
-						continue;
-					}
-					if config::KEYJAZZ.contains(&scancode) {
-						m8.set_note_off()
-					} else {
-						config.handle_keys(&mut m8, scancode, false);
-					}
+				Event::JoyAxisMotion { which, axis_idx, value, .. } => {
+					app.handle_cmd(&mut m8, app.axis_cmd(which, axis_idx, value));
 				}
-				_ => {}
+				Event::JoyHatMotion { which, state, .. } => {
+					app.handle_cmd(&mut m8, app.hat_cmd(which, state));
+				}
+				Event::JoyButtonDown { which, button_idx, .. } => {
+					app.handle_cmd(&mut m8, app.button_cmd(which, button_idx, false));
+				}
+				Event::JoyButtonUp { which, button_idx, .. } => {
+					app.handle_cmd(&mut m8, app.button_cmd(which, button_idx, true));
+				}
+				Event::JoyDeviceAdded { which, .. } => {
+					app.add_joystick(&joystick_subsystem, which);
+				}
+				Event::JoyDeviceRemoved { which, .. } => {
+					app.rem_joystick(&joystick_subsystem, which)
+				}
+				_ => (),
 			}
 		}
 
-		if m8.note.changed() {
-			m8.send_keyjazz()?;
-		}
-		if m8.keys.changed() {
-			m8.send_keys()?;
-		}
+		app.process_key(&mut m8);
+		if app.config_mode() {
+			app.process_action(&mut canvas, &joystick_subsystem, &config_file)?;
 
-		canvas
-			.with_texture_canvas(&mut texture, |mut texture_canvas| {
-				if let Some(ref remapping) = remap {
-					let _ = display.draw_mapping(&mut texture_canvas, &mut font, remapping);
-					return;
-				}
-				while let Ok(Some(cmd)) = m8.read() {
-					let _ = match cmd {
-						Command::Joypad { .. } => Ok(()),
-						Command::Waveform(fg, data) => {
-							display.draw_waveform(&mut texture_canvas, data, fg)
-						}
-						Command::Character(c, x, y, fg, bg) => {
-							display.draw_character(&mut texture_canvas, &mut font, c, x, y, fg, bg)
-						}
-						Command::Rectangle(x, y, w, h, bg) => {
-							display.draw_rectangle(&mut texture_canvas, x, y, w, h, bg)
-						}
+			canvas
+				.with_texture_canvas(&mut texture, |mut target| {
+					let config = app.config();
+					let ctx = &mut draw::Context {
+						canvas: &mut target,
+						font: &mut font,
+						theme: config.theme,
+						font_option: config.app.font,
+						screen_bg: None,
 					};
-				}
-				let (kc, vc, oc) =
-					(m8.keyjazz.changed(), m8.velocity.changed(), m8.octave.changed());
-				if kc || vc {
-					let _ = display.draw_velocity(
-						&mut texture_canvas,
-						&mut font,
-						*m8.velocity,
-						*m8.keyjazz,
-					);
-				}
-				if kc || oc {
-					let _ = display.draw_octave(
-						&mut texture_canvas,
-						&mut font,
-						*m8.octave,
-						*m8.keyjazz,
-					);
-				}
-			})
-			.map_err(|e| e.to_string())?;
+					let _ = app.render(ctx);
+				})
+				.map_err(|e| e.to_string())?;
+		} else {
+			if m8.note.changed() {
+				m8.send_keyjazz()?;
+			}
+			if m8.keys.changed() {
+				m8.send_keys()?;
+			}
 
-		let now = std::time::Instant::now();
-		if now - display.ticks > Duration::from_millis(15) {
-			display.ticks = now;
-			canvas.set_draw_color(display.bg);
+			canvas
+				.with_texture_canvas(&mut texture, |mut target| {
+					let config = app.config();
+					let ctx = &mut draw::Context {
+						canvas: &mut target,
+						font: &mut font,
+						theme: config.theme,
+						font_option: config.app.font,
+						screen_bg: None,
+					};
+					while let Ok(Some(cmd)) = m8.read() {
+						let _ = match cmd {
+							m8::Command::Joypad { .. } => Ok(()),
+							m8::Command::Waveform(fg, data) => ctx.draw_waveform(data, fg),
+							m8::Command::Character(c, x, y, fg, bg) => ctx.draw_char(
+								c,
+								x as i32,
+								y as i32,
+								Rgb::from_tuple(fg),
+								Rgb::from_tuple(bg),
+							),
+							m8::Command::Rectangle(x, y, w, h, bg) => ctx.draw_rect(
+								(x as i32, y as i32, w as u32, h as u32),
+								Rgb::from_tuple(bg),
+							),
+						};
+					}
+					let (kc, vc, oc) =
+						(m8.keyjazz.changed(), m8.velocity.changed(), m8.octave.changed());
+					if kc || vc {
+						let _ = ctx.draw_velocity(*m8.velocity, *m8.keyjazz);
+					}
+					if kc || oc {
+						let _ = ctx.draw_octave(*m8.octave, *m8.keyjazz);
+					}
+					if let Some(bg) = ctx.screen_bg {
+						app.config_mut().theme.screen = bg;
+					}
+				})
+				.map_err(|e| e.to_string())?;
+		}
+
+		if app.sync() {
+			canvas.set_draw_color(app.config().theme.screen.rgb());
 			canvas.clear();
 			canvas.copy(&texture, None, None)?;
 			canvas.present();
 		} else {
-			std::thread::sleep(Duration::from_millis(0));
+			thread::sleep(Duration::from_millis(10));
 		}
 	}
+
 	Ok(())
 }

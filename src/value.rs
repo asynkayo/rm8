@@ -22,6 +22,10 @@ impl<T: std::cmp::Eq + Copy> Value<T> {
 		}
 	}
 
+	pub fn set_changed(&mut self) {
+		self.modified = true;
+	}
+
 	pub fn changed(&mut self) -> bool {
 		if self.modified {
 			self.modified = false;
@@ -51,6 +55,10 @@ impl Value<u8> {
 			self.value &= !mask;
 			self.modified = true;
 		}
+	}
+
+	pub fn tst_bit(&mut self, mask: u8) -> bool {
+		self.value & mask != 0
 	}
 
 	pub fn add(&mut self, add: u8, max: u8) {

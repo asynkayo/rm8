@@ -8,15 +8,20 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
 
 [SDL scancodes](https://github.com/libsdl-org/SDL/blob/main/include/SDL_scancode.h)
 
+[SDL keycodes](https://github.com/libsdl-org/SDL/blob/main/include/SDL_keycode.h)
+
 `Alt + Enter` will toggle fullscreen.
 
-`Shift + R key` will reset the display (enable and reset display)
+`Alt + R key` will reset the display
 
 `Alt + Shift + R key` will do a full reset of the display (disconnect + enable and reset display)
 
-`Ctrl + r` will help you redefine all the mappings and save the result to `rm8.json`. Use `Esc` to cancel the process.
+`Alt + C` will enter config mode.
+
+`Escape` will either quit the application or fullscreen mode or config mode or key remapping mode.
 
 ## Default key mapping
+
     UP        = UP           # M8's `UP` key
     DOWN      = DOWN         # M8's `DOWN` key
     LEFT      = LEFT         # M8's `LEFT` key
@@ -34,7 +39,20 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
     VELOCITY+ = MINUS        # Increment velocity (use the keyboard's `Shift` key to go faster)
     VELOCITY- = EQUALS       # Decrement velocity (use the keyboard's `Shift` key to go faster)
 
-NOTE: If the keys do not overlap with `keyjazz` keys, then `keyjazz` can be left ON
+## Keyjazz keymapping
+
+The following keys are used in `keyjazz` mode to send notes to the M8:
+
+- Higher octave:  Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P
+- Current octave: Z S X D C V G B H N J M , L . ;
+
+If you are using an `azerty` or `dvorak` keyboard layout, you may want to change the keys.
+
+For that, open or generate the config file and look for the `"keyjazz"` section.
+
+The numbers on the right are the index of the note.
+
+NOTE: If the keys do not overlap with `keyjazz` keys, then `keyjazz` can be left ON.
 
 ## Usage
 
@@ -52,6 +70,163 @@ Run `rm8 -rc <FILE>` 	to load the config from `FILE`.
 
 NOTE: The default config file name is `rm8.json`.
 
+# Config Mode
+
+By pressing `Alt + C` you will enter config mode.
+
+In this mode, you can redefine most params of the application.
+
+The parameters are split in 8 pages.
+
+Pressing `Edit` and `Option` on a control will reset it to its default value.
+
+Navigate using `Shift` and `ARROWs` just like on the M8.
+
+Press `Escape` at any time to exit config mode. (Press twice if your were in remapping mode).
+
+## Application config
+
+On this page you will be able to configure:
+
+- Fullscreen (effective after a restart but you can use `Alt + Enter` to toggle fullscreen).
+- Zoom level
+- Font options (see Alternate Fonts)
+- Key sensibility
+
+Press `RESET` to restore the application settings to their last saved state.
+
+Press `SAVE` to save the application settings to the config file.
+
+## Theme config
+
+On this page you will be able to configure the colors of the application:
+
+- Text:Default
+- Text:Value
+- Text:Title
+- Text:Info
+- Cursor
+- Screen Background
+- Velocity indicator (Background and Foreground)
+- Octave indicator (Background and Foreground)
+
+Press `RESET` to restore the theme settings to their last saved state.
+
+Press `SAVE` to save the theme settings to the config file.
+
+## M8 Keys
+
+On this page you will be able to map the keys to control your M8:
+
+- UP
+- DOWN
+- LEFT
+- RIGHT
+- EDIT
+- OPTION
+- SHIFT
+- PLAY
+
+Press `REMAP` button to enter remap mode and redefine the keys.
+
+Press `Escape` to exit remapping mode.
+
+Press `RESET` to restore the M8 key settings to their last saved state.
+
+Press `SAVE` to save the M8 key settings to the config file.
+
+## RM8 Keys
+
+On this page you will be able to map the keys to control the application:
+
+- KEYJAZZ (toggle keyjazz mode)
+- VELOCITY-
+- VELOCITY+
+- OCTAVE-
+- OCTAVE+
+
+Press `REMAP` button to enter remap mode and redefine the keys.
+
+Press `Escape` to exit remapping mode.
+
+Press `RESET` to restore the RM8 key settings to their last saved state.
+
+Press `SAVE` to save the RM8 key settings to the config file.
+
+## Joysticks
+
+On the main config page you will be able to select your joystick.
+
+If no joysticks are connected, you will only see this information:
+
+- N.JOYSTICKS 0
+
+If you have at least one joystick connected, you will see this information:
+
+- N.JOYSTICKS N (for as many joysticks you have connected)
+- SEL.ID      0 (use this control to select your joystick)
+- NAME          (the name of the selected joystick)
+- GUID -----    (this is the unique identifier of your joystick, it will be used in the config file).
+- N.AXES      A (number of axes)
+- N.BUTTONS   B (number of buttons)
+- N.HATS      H (number of hats)
+
+Press `RESET` to restore ALL the settings of your joystick to their last saved state.
+
+Press `SAVE` to save the ALL the settings of your joystic to the config file.
+
+### Axes
+
+On this page you will be able to configure the `axes` of your joystick.
+
+Currently, only 6 axes are supported.
+
+For each axis, you will be able to associate 2 commands (for negative and positive).
+
+You will also be able to configure the axis sensibility in order to avoid spurious triggers.
+
+Press `RESET` to restore the Axes settings to their last saved state.
+
+Press `SAVE` to save the Axes settings to the config file.
+
+### Buttons
+
+On this page you will be able to configure the `buttons` of your joystick.
+
+Currently, only 20 buttons are supported.
+For each button, you will be able to associate 1 command.
+
+Press `RESET` to restore the Buttons settings to their last saved state.
+
+Press `SAVE` to save the Buttons settings to the config file.
+
+### Hats
+
+On this page you will be able to configure the `hats` of your joystick.
+
+Currently, only one hat is supported.
+
+For each state of the hat, you will be able to associate 1 command.
+
+The states are:
+
+- UP
+- DOWN
+- LEFT
+- RIGHT
+- UP LEFT
+- UP RIGHT
+- DOWN LEFT
+- DOWN RIGHT
+
+Press `RESET` to restore the Hat settings to their last saved state.
+
+Press `SAVE` to save the Hat settings to the config file.
+
+### NOTE
+
+The code for handling joysticks may be a bit buggy as I do not have enough experience in dealing with these devices.
+
 # Build
 
 This project uses [rust](https://rust-lang.org)
@@ -67,6 +242,7 @@ You can also compress the binary to gain some extra bytes using `upx --best --lz
 ## Dependencies
 
 This project uses:
+
 - [SDL2](https://www.libsdl.org)
 - [serialport](https://gitlab.com/susurrus/serialport-rs)
 - [serde](https://serde.rs/)
@@ -87,6 +263,12 @@ This project uses a bitmap render of the font stealth57.ttf by Trash80.
 Original font available at https://fontstruct.com/fontstructions/show/413734/stealth57
 
 Originally licensed under a Creative Commons Attribution Share Alike license, https://creativecommons.org/licenses/by-sa/3.0/
+
+## Alternate fonts
+
+I modified the bitmap rendered font to support both alternate zeros from the newer firmwares.
+
+However, as I do not yet have a real M8, I don't know if there are differences with the font on newer firmwares.
 
 # Info from discord
 

@@ -1,10 +1,5 @@
 use std::env;
 
-pub enum Action {
-	Continue,
-	Return,
-}
-
 use crate::config::Config;
 use crate::m8::M8;
 
@@ -22,7 +17,7 @@ pub fn handle_command_line(
 	config: &mut Config,
 	config_file: &mut Option<String>,
 	device: &mut Option<String>,
-) -> Result<Action, String> {
+) -> Result<bool, String> {
 	let mut args = env::args().skip(1);
 	match (args.next().as_deref(), args.next()) {
 		(Some("-version"), None) => println!("rm8 v{}", env!("CARGO_PKG_VERSION")),
@@ -48,15 +43,15 @@ pub fn handle_command_line(
 			if let Err(e) = config.read(&file) {
 				return Err(format!("Error: loading config file `{}` ({})", file, e));
 			}
-			return Ok(Action::Continue);
+			return Ok(true);
 		}
 		(Some("-rc"), None) => return Err("Error: missing config file argument".to_string()),
 		(Some("-dev"), Some(dev)) => {
 			device.replace(dev);
-			return Ok(Action::Continue);
+			return Ok(true);
 		}
 		(Some("-dev"), None) => return Err("Error: missing device argument".to_string()),
-		_ => return Ok(Action::Continue),
+		_ => return Ok(true),
 	};
-	Ok(Action::Return)
+	Ok(false)
 }
