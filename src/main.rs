@@ -41,13 +41,12 @@ use config::Rgb;
 use m8::M8;
 
 fn main() -> Result<(), String> {
-	let mut app = App::new();
+	let running = Arc::new(AtomicBool::new(true));
+	let ctrlc_running = running.clone();
+	let mut app = App::new(running);
 	let _ = app.config_mut().read(app::CONFIG_FILE);
 
-	let running = Arc::new(AtomicBool::new(true));
-	let run = running.clone();
-
-	ctrlc::set_handler(move || run.store(false, atomic::Ordering::SeqCst))
+	ctrlc::set_handler(move || ctrlc_running.store(false, atomic::Ordering::SeqCst))
 		.map_err(|e| e.to_string())?;
 
 	// process command line arguments
@@ -94,27 +93,16 @@ fn main() -> Result<(), String> {
 	let mut font = font::init(&creator)?;
 
 	let mut event_pump = sdl_context.event_pump()?;
-	while running.load(atomic::Ordering::SeqCst) {
+	while app.running() {
 		for event in event_pump.poll_iter() {
 			match event {
 				Event::Quit { .. } => {
-					running.store(false, atomic::Ordering::SeqCst);
+					app.quit();
 					continue;
 				}
 				Event::KeyDown { keycode: Some(keycode), keymod, repeat, .. } => {
 					if keycode == Keycode::Escape {
-						if app.config_mode() {
-							if app.remap_mode() {
-								app.cancel_remap_mode();
-								continue;
-							}
-							app.cancel_config_mode();
-							m8.refresh();
-						} else if draw::is_fullscreen(&canvas) {
-							draw::toggle_fullscreen(&mut canvas)?;
-						} else {
-							running.store(false, atomic::Ordering::SeqCst);
-						}
+						app.escape_command(&mut m8, &mut canvas)?;
 						continue;
 					}
 					if repeat || app.remap_mode() {
@@ -184,6 +172,7 @@ fn main() -> Result<(), String> {
 		}
 
 		app.process_key(&mut m8);
+		app.handle_defer(&mut m8, &mut canvas)?;
 		if app.config_mode() {
 			app.process_action(&mut canvas, &joystick_subsystem, &config_file)?;
 

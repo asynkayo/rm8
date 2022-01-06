@@ -8,23 +8,30 @@ use sdl2::{
 use std::{
 	cmp::Ordering,
 	collections::HashMap,
+	sync::{
+		atomic::{self, AtomicBool},
+		Arc,
+	},
 	time::{self, Duration},
 };
 
-use crate::config::{self, Command, Config};
-use crate::draw::{zoom_window, Context};
-use crate::m8::{self, M8};
-use crate::menu;
-use crate::menu_tools::{
-	app_from_page, app_to_page, axes_from_page, buttons_from_page, clear_axes_page,
-	clear_buttons_page, clear_hats_page, clear_joystick_subpages, hats_from_page,
-	joystick_has_hats, m8_keys_from_page, m8_to_page, rm8_keys_from_page, rm8_to_page,
-	selected_joystick_config, selected_joystick_guid, selected_joystick_id, theme_from_page,
-	theme_to_page, update_axes_page, update_buttons_page, update_hats_page, update_joystick_pages,
+use crate::{
+	config::{self, Command, Config},
+	draw::{self, Context},
+	m8::{self, M8},
+	menu,
+	menu_tools::{
+		app_from_page, app_to_page, axes_from_page, buttons_from_page, clear_axes_page,
+		clear_buttons_page, clear_hats_page, clear_joystick_subpages, hats_from_page,
+		joystick_has_hats, m8_keys_from_page, m8_to_page, rm8_keys_from_page, rm8_to_page,
+		selected_joystick_config, selected_joystick_guid, selected_joystick_id, theme_from_page,
+		theme_to_page, update_axes_page, update_buttons_page, update_hats_page,
+		update_joystick_pages,
+	},
+	nav::{Action, Direction, Edit, Navigation, Page},
+	remap::Remap,
+	value::Value,
 };
-use crate::nav::{Action, Direction, Edit, Navigation, Page};
-use crate::remap::Remap;
-use crate::value::Value;
 
 pub const CONFIG_FILE: &str = "rm8.json";
 
@@ -46,10 +53,12 @@ pub struct App {
 	in_config: bool,
 	remap: Option<Remap>,
 	keys: Value<u8>,
+	running: Arc<AtomicBool>,
+	defer: Option<Command>,
 }
 
 impl App {
-	pub fn new() -> Self {
+	pub fn new(running: Arc<AtomicBool>) -> Self {
 		let config = Config::default();
 		let menu = menu::build_menu(&config);
 		Self {
@@ -63,7 +72,17 @@ impl App {
 			in_config: false,
 			remap: None,
 			keys: Value::<u8>::new(0),
+			running,
+			defer: None,
 		}
+	}
+
+	pub fn running(&self) -> bool {
+		self.running.load(atomic::Ordering::SeqCst)
+	}
+
+	pub fn quit(&mut self) {
+		self.running.store(false, atomic::Ordering::SeqCst);
 	}
 
 	pub fn config_mode(&self) -> bool {
@@ -236,7 +255,7 @@ impl App {
 		None
 	}
 
-	pub fn handle_cmd(&self, m8: &mut M8, cmd: Option<(Command, bool)>) {
+	pub fn handle_cmd(&mut self, m8: &mut M8, cmd: Option<(Command, bool)>) {
 		if let Some((cmd, clear)) = cmd {
 			let f = if clear { Value::clr_bit } else { Value::set_bit };
 			match cmd {
@@ -254,6 +273,13 @@ impl App {
 				Command::VelocityPlus => f(&mut m8.keys, KEY_VEL_INC),
 				Command::OctaveMinus => f(&mut m8.keys, KEY_OCT_DEC),
 				Command::OctavePlus => f(&mut m8.keys, KEY_OCT_INC),
+				Command::Config => self.start_config_mode(),
+				Command::Escape
+				| Command::Fullscreen
+				| Command::Reset
+				| Command::ResetFull => {
+					self.defer.replace(cmd);
+				}
 				Command::None => m8.keys.clr_bit(m8::KEY_DIR),
 			}
 		}
@@ -373,7 +399,7 @@ impl App {
 				let old_zoom = self.config.app.zoom;
 				self.config.app = app_from_page(page);
 				if self.config.app.zoom != old_zoom {
-					zoom_window(canvas.window_mut(), self.config.app.zoom);
+					draw::zoom_window(canvas.window_mut(), self.config.app.zoom);
 				}
 				dirty = true;
 			}
@@ -607,5 +633,36 @@ impl App {
 			return true;
 		}
 		false
+	}
+
+	pub fn escape_command(
+		&mut self,
+		m8: &mut M8,
+		canvas: &mut Canvas<Window>,
+	) -> Result<(), String> {
+		if draw::is_fullscreen(canvas) {
+			draw::toggle_fullscreen(canvas)?;
+		} else if self.config_mode() {
+			if self.remap_mode() {
+				self.cancel_remap_mode();
+			} else {
+				self.cancel_config_mode();
+			}
+			m8.refresh();
+		} else {
+			self.running.store(false, atomic::Ordering::SeqCst);
+		}
+		Ok(())
+	}
+
+	pub fn handle_defer(&mut self, m8: &mut M8, canvas: &mut Canvas<Window>) -> Result<(), String> {
+		match self.defer.take() {
+			Some(Command::Escape) => self.escape_command(m8, canvas)?,
+			Some(Command::Fullscreen) => draw::toggle_fullscreen(canvas)?,
+			Some(Command::Reset) => m8.reset(false)?,
+			Some(Command::ResetFull) => m8.reset(true)?,
+			Some(_) | None => {}
+		}
+		Ok(())
 	}
 }

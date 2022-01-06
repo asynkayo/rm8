@@ -16,6 +16,11 @@ pub enum Command {
 	OctaveMinus,
 	OctavePlus,
 	Keyjazz,
+	Config,
+	Escape,
+	Fullscreen,
+	Reset,
+	ResetFull,
 }
 
 impl Default for Command {
@@ -50,6 +55,11 @@ impl TryFrom<u8> for Command {
 			11 => Command::OctaveMinus,
 			12 => Command::OctavePlus,
 			13 => Command::Keyjazz,
+			14 => Command::Config,
+			15 => Command::Escape,
+			16 => Command::Fullscreen,
+			17 => Command::Reset,
+			18 => Command::ResetFull,
 			_ => return Err(()),
 		})
 	}
@@ -72,6 +82,11 @@ impl fmt::Display for Command {
 			Command::OctaveMinus => write!(f, "OCTAVE-"),
 			Command::OctavePlus => write!(f, "OCTAVE+"),
 			Command::Keyjazz => write!(f, "KEYJAZZ"),
+			Command::Config => write!(f, "CONFIG"),
+			Command::Escape => write!(f, "ESCAPE"),
+			Command::Fullscreen => write!(f, "FULLSCREEN"),
+			Command::Reset => write!(f, "RESET"),
+			Command::ResetFull=> write!(f, "RESETFULL"),
 		}
 	}
 }
