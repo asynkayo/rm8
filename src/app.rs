@@ -12,12 +12,14 @@ use std::{
 		atomic::{self, AtomicBool},
 		Arc,
 	},
+	thread,
 	time::{self, Duration},
 };
 
 use crate::{
 	config::{self, Command, Config},
 	draw::{self, Context},
+	font,
 	m8::{self, M8},
 	menu,
 	menu_tools::{
@@ -55,6 +57,9 @@ pub struct App {
 	keys: Value<u8>,
 	running: Arc<AtomicBool>,
 	defer: Option<Command>,
+	fps: usize,
+	fps_count: usize,
+	fps_ticks: time::Instant,
 }
 
 impl App {
@@ -62,7 +67,6 @@ impl App {
 		let config = Config::default();
 		let menu = menu::build_menu(&config);
 		Self {
-			config,
 			frame_ticks: time::Instant::now(),
 			config_ticks: time::Instant::now(),
 			joysticks: HashMap::<String, Joystick>::new(),
@@ -74,6 +78,10 @@ impl App {
 			keys: Value::<u8>::new(0),
 			running,
 			defer: None,
+			fps: config.app.fps,
+			fps_count: 0,
+			fps_ticks: time::Instant::now(),
+			config,
 		}
 	}
 
@@ -274,10 +282,7 @@ impl App {
 				Command::OctaveMinus => f(&mut m8.keys, KEY_OCT_DEC),
 				Command::OctavePlus => f(&mut m8.keys, KEY_OCT_INC),
 				Command::Config => self.start_config_mode(),
-				Command::Escape
-				| Command::Fullscreen
-				| Command::Reset
-				| Command::ResetFull => {
+				Command::Escape | Command::Fullscreen | Command::Reset | Command::ResetFull => {
 					self.defer.replace(cmd);
 				}
 				Command::None => m8.keys.clr_bit(m8::KEY_DIR),
@@ -626,12 +631,33 @@ impl App {
 		self.menu.draw(ctx)
 	}
 
+	pub fn render_fps(&mut self, ctx: &mut Context<'_, '_, '_>) -> Result<(), String> {
+		if self.config.app.show_fps {
+			self.fps_count += 1;
+			let now = time::Instant::now();
+			if now - self.fps_ticks > Duration::from_secs(5) {
+				self.fps_ticks = now;
+				self.fps = self.fps_count;
+				self.fps_count = 0;
+			}
+			let fg = self.config.theme.text_default;
+			ctx.draw_rect(
+				(0, 0, font::width(6) as u32, draw::LINE_HEIGHT as u32),
+				self.config.theme.screen,
+			)?;
+			ctx.draw_str(&format!("{:3} fps", self.fps / 5), 0, 0, fg, fg)?;
+		}
+		Ok(())
+	}
+
 	pub fn sync(&mut self) -> bool {
 		let now = time::Instant::now();
 		if now - self.frame_ticks > Duration::from_millis(15) {
 			self.frame_ticks = now;
 			return true;
 		}
+		let fps_sleep = (1.0 / self.config.app.fps as f64 * 1000.0) as u64;
+		thread::sleep(Duration::from_millis(fps_sleep));
 		false
 	}
 

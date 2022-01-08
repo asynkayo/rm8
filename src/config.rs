@@ -9,6 +9,7 @@ pub use crate::config_keycode::Keycode;
 pub use crate::config_rgb::Rgb;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ThemeConfig {
 	pub screen: Rgb,
 	pub text_default: Rgb,
@@ -22,15 +23,49 @@ pub struct ThemeConfig {
 	pub velocity_fg: Rgb,
 }
 
+impl Default for ThemeConfig {
+	fn default() -> Self {
+		Self {
+			octave_bg: Rgb(0, 0, 255),
+			octave_fg: Rgb(255, 255, 255),
+			velocity_bg: Rgb(255, 0, 0),
+			velocity_fg: Rgb(255, 255, 255),
+			screen: Rgb(0, 0, 0),
+			text_default: Rgb(0x8c, 0x8c, 0xba),
+			text_value: Rgb(0xfa, 0xfa, 0xfa),
+			text_title: Rgb(0x32, 0xec, 0xff),
+			text_info: Rgb(0x60, 0x60, 0x8e),
+			cursor: Rgb(0x32, 0xec, 0xff),
+		}
+	}
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct AppConfig {
 	pub fullscreen: bool,
 	pub font: Font,
 	pub zoom: u32,
 	pub key_sensibility: u64,
+	pub fps: usize,
+	pub show_fps: bool,
+}
+
+impl Default for AppConfig {
+	fn default() -> Self {
+		Self {
+			fullscreen: false,
+			font: Font::Uppercase,
+			zoom: 4,
+			key_sensibility: 60,
+			fps: 60,
+			show_fps: false,
+		}
+	}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct M8KeyboardConfig {
 	pub up: Keycode,
 	pub down: Keycode,
@@ -42,13 +77,41 @@ pub struct M8KeyboardConfig {
 	pub play: Keycode,
 }
 
+impl Default for M8KeyboardConfig {
+	fn default() -> Self {
+		Self {
+			up: SdlKeycode::Up.into(),
+			down: SdlKeycode::Down.into(),
+			left: SdlKeycode::Left.into(),
+			right: SdlKeycode::Right.into(),
+			edit: SdlKeycode::LCtrl.into(),
+			option: SdlKeycode::LAlt.into(),
+			shift: SdlKeycode::LShift.into(),
+			play: SdlKeycode::Space.into(),
+		}
+	}
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RM8KeyboardConfig {
 	pub keyjazz: Keycode,
 	pub velocity_minus: Keycode,
 	pub velocity_plus: Keycode,
 	pub octave_minus: Keycode,
 	pub octave_plus: Keycode,
+}
+
+impl Default for RM8KeyboardConfig {
+	fn default() -> Self {
+		Self {
+			keyjazz: SdlKeycode::Return.into(),
+			velocity_minus: SdlKeycode::Minus.into(),
+			velocity_plus: SdlKeycode::Equals.into(),
+			octave_minus: SdlKeycode::LeftBracket.into(),
+			octave_plus: SdlKeycode::RightBracket.into(),
+		}
+	}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,41 +134,10 @@ pub struct Config {
 impl Default for Config {
 	fn default() -> Self {
 		Self {
-			app: AppConfig {
-				fullscreen: false,
-				font: Font::Uppercase,
-				zoom: 4,
-				key_sensibility: 60,
-			},
-			theme: ThemeConfig {
-				octave_bg: Rgb(0, 0, 255),
-				octave_fg: Rgb(255, 255, 255),
-				velocity_bg: Rgb(255, 0, 0),
-				velocity_fg: Rgb(255, 255, 255),
-				screen: Rgb(0, 0, 0),
-				text_default: Rgb(0x8c, 0x8c, 0xba),
-				text_value: Rgb(0xfa, 0xfa, 0xfa),
-				text_title: Rgb(0x32, 0xec, 0xff),
-				text_info: Rgb(0x60, 0x60, 0x8e),
-				cursor: Rgb(0x32, 0xec, 0xff),
-			},
-			m8: M8KeyboardConfig {
-				up: SdlKeycode::Up.into(),
-				down: SdlKeycode::Down.into(),
-				left: SdlKeycode::Left.into(),
-				right: SdlKeycode::Right.into(),
-				edit: SdlKeycode::LCtrl.into(),
-				option: SdlKeycode::LAlt.into(),
-				shift: SdlKeycode::LShift.into(),
-				play: SdlKeycode::Space.into(),
-			},
-			rm8: RM8KeyboardConfig {
-				keyjazz: SdlKeycode::Return.into(),
-				velocity_minus: SdlKeycode::Minus.into(),
-				velocity_plus: SdlKeycode::Equals.into(),
-				octave_minus: SdlKeycode::LeftBracket.into(),
-				octave_plus: SdlKeycode::RightBracket.into(),
-			},
+			app: AppConfig::default(),
+			theme: ThemeConfig::default(),
+			m8: M8KeyboardConfig::default(),
+			rm8: RM8KeyboardConfig::default(),
 			keyjazz: HashMap::from([
 				(Keycode(SdlKeycode::Z), 0),
 				(Keycode(SdlKeycode::S), 1),

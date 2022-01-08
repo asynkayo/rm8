@@ -3,9 +3,7 @@
     "fullscreen": false,
     "font": "Uppercase",
     "zoom": 4,
-    "key_sensibility": 60,
-    "show_fps": false,
-    "fps": 60
+    "key_sensibility": 60
   },
   "theme": {
     "screen": "#000000",

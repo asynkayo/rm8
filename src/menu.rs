@@ -23,7 +23,9 @@ pub fn build_menu(config: &Config) -> Navigation {
 	app_page.add_bool("FULLSCREEN", config.app.fullscreen);
 	app_page.add_int("ZOOM", config.app.zoom as usize, 1, 9, 2);
 	app_page.add_font("FONT", config.app.font);
-	app_page.add_int("KEY.SENS.", config.app.key_sensibility as usize, 60, 200, 10);
+	app_page.add_int("KEY SENS.", config.app.key_sensibility as usize, 60, 200, 10);
+	app_page.add_bool("SHOW_FPS", config.app.show_fps);
+	app_page.add_int("FPS", config.app.fps, 1, 100, 10);
 	app_page.add_empty();
 	app_page.add_action2("RESET", "SAVE");
 	app_page.add_page_above(theme_page);

@@ -58,7 +58,7 @@ impl M8 {
 			if info.vid == VENDOR_ID && info.pid == PRODUCT_ID {
 				return Ok(Self {
 					port: serialport::new(&p.port_name, 115200)
-						.timeout(Duration::from_millis(10))
+						.timeout(Duration::from_millis(0))
 						.open()?,
 					buf: [0; 324],
 					slip: Slip::new(),

@@ -92,8 +92,6 @@ On this page you will be able to configure:
 - Zoom level
 - Font options (see Alternate Fonts)
 - Key sensibility
-- Show FPS
-- FPS (select desired number of FPS)
 
 Press `RESET` to restore the application settings to their last saved state.
 

@@ -7,13 +7,9 @@ use sdl2::{
 	pixels::PixelFormatEnum,
 	video,
 };
-use std::{
-	sync::{
-		atomic::{self, AtomicBool},
-		Arc,
-	},
-	thread,
-	time::Duration,
+use std::sync::{
+	atomic::{self, AtomicBool},
+	Arc,
 };
 
 mod app;
@@ -173,79 +169,79 @@ fn main() -> Result<(), String> {
 
 		app.process_key(&mut m8);
 		app.handle_defer(&mut m8, &mut canvas)?;
-		if app.config_mode() {
-			app.process_action(&mut canvas, &joystick_subsystem, &config_file)?;
-
-			canvas
-				.with_texture_canvas(&mut texture, |mut target| {
-					let config = app.config();
-					let ctx = &mut draw::Context {
-						canvas: &mut target,
-						font: &mut font,
-						theme: config.theme,
-						font_option: config.app.font,
-						screen_bg: None,
-					};
-					let _ = app.render(ctx);
-				})
-				.map_err(|e| e.to_string())?;
-		} else {
-			if m8.note.changed() {
-				m8.send_keyjazz()?;
-			}
-			if m8.keys.changed() {
-				m8.send_keys()?;
-			}
-
-			canvas
-				.with_texture_canvas(&mut texture, |mut target| {
-					let config = app.config();
-					let ctx = &mut draw::Context {
-						canvas: &mut target,
-						font: &mut font,
-						theme: config.theme,
-						font_option: config.app.font,
-						screen_bg: None,
-					};
-					while let Ok(Some(cmd)) = m8.read() {
-						let _ = match cmd {
-							m8::Command::Joypad { .. } => Ok(()),
-							m8::Command::Waveform(fg, data) => ctx.draw_waveform(data, fg),
-							m8::Command::Character(c, x, y, fg, bg) => ctx.draw_char(
-								c,
-								x as i32,
-								y as i32,
-								Rgb::from_tuple(fg),
-								Rgb::from_tuple(bg),
-							),
-							m8::Command::Rectangle(x, y, w, h, bg) => ctx.draw_rect(
-								(x as i32, y as i32, w as u32, h as u32),
-								Rgb::from_tuple(bg),
-							),
-						};
-					}
-					let (kc, vc, oc) =
-						(m8.keyjazz.changed(), m8.velocity.changed(), m8.octave.changed());
-					if kc || vc {
-						let _ = ctx.draw_velocity(*m8.velocity, *m8.keyjazz);
-					}
-					if kc || oc {
-						let _ = ctx.draw_octave(*m8.octave, *m8.keyjazz);
-					}
-					if let Some(bg) = ctx.screen_bg {
-						app.config_mut().theme.screen = bg;
-					}
-				})
-				.map_err(|e| e.to_string())?;
-		}
-
 		if app.sync() {
+			if app.config_mode() {
+				app.process_action(&mut canvas, &joystick_subsystem, &config_file)?;
+
+				canvas
+					.with_texture_canvas(&mut texture, |mut target| {
+						let config = app.config();
+						let ctx = &mut draw::Context {
+							canvas: &mut target,
+							font: &mut font,
+							theme: config.theme,
+							font_option: config.app.font,
+							screen_bg: None,
+						};
+						let _ = app.render(ctx);
+						let _ = app.render_fps(ctx);
+					})
+					.map_err(|e| e.to_string())?;
+			} else {
+				if m8.note.changed() {
+					m8.send_keyjazz()?;
+				}
+				if m8.keys.changed() {
+					m8.send_keys()?;
+				}
+
+				canvas
+					.with_texture_canvas(&mut texture, |mut target| {
+						let config = app.config();
+						let ctx = &mut draw::Context {
+							canvas: &mut target,
+							font: &mut font,
+							theme: config.theme,
+							font_option: config.app.font,
+							screen_bg: None,
+						};
+						while let Ok(Some(cmd)) = m8.read() {
+							let _ = match cmd {
+								m8::Command::Joypad { .. } => Ok(()),
+								m8::Command::Waveform(fg, data) => ctx.draw_waveform(data, fg),
+								m8::Command::Character(c, x, y, fg, bg) => ctx.draw_char(
+									c,
+									x as i32,
+									y as i32,
+									Rgb::from_tuple(fg),
+									Rgb::from_tuple(bg),
+								),
+								m8::Command::Rectangle(x, y, w, h, bg) => ctx.draw_rect(
+									(x as i32, y as i32, w as u32, h as u32),
+									Rgb::from_tuple(bg),
+								),
+							};
+						}
+						let (kc, vc, oc) =
+							(m8.keyjazz.changed(), m8.velocity.changed(), m8.octave.changed());
+						if kc || vc {
+							let _ = ctx.draw_velocity(*m8.velocity, *m8.keyjazz);
+						}
+						if kc || oc {
+							let _ = ctx.draw_octave(*m8.octave, *m8.keyjazz);
+						}
+						if let Some(bg) = ctx.screen_bg {
+							app.config_mut().theme.screen = bg;
+						}
+						let _ = app.render_fps(ctx);
+					})
+					.map_err(|e| e.to_string())?;
+			}
+
 			canvas.set_draw_color(app.config().theme.screen.rgb());
 			canvas.clear();
 			canvas.copy(&texture, None, None)?;
 			canvas.present();
-		} else {
-			thread::sleep(Duration::from_millis(10));
 		}
 	}
 
