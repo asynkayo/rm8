@@ -49,6 +49,7 @@ pub struct AppConfig {
 	pub key_sensibility: u64,
 	pub fps: usize,
 	pub show_fps: bool,
+	pub reconnect: bool,
 }
 
 impl Default for AppConfig {
@@ -60,6 +61,7 @@ impl Default for AppConfig {
 			key_sensibility: 60,
 			fps: 60,
 			show_fps: false,
+			reconnect: false,
 		}
 	}
 }

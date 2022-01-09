@@ -1,5 +1,5 @@
 use serialport::{available_ports, ErrorKind, SerialPort, SerialPortType};
-use std::time::Duration;
+use std::{io, time::Duration};
 
 use crate::slip::Slip;
 use crate::value::Value;
@@ -38,6 +38,8 @@ pub enum Command<'a> {
 pub struct M8 {
 	port: Box<dyn SerialPort>,
 	buf: [u8; 324],
+	reconnect: bool,
+	lost: bool,
 	slip: Slip<1024>,
 	pub keyjazz: Value<bool>,
 	pub note: Value<u8>,
@@ -60,6 +62,8 @@ impl M8 {
 					port: serialport::new(&p.port_name, 115200)
 						.timeout(Duration::from_millis(0))
 						.open()?,
+					reconnect: false,
+					lost: false,
 					buf: [0; 324],
 					slip: Slip::new(),
 					keyjazz: Value::new(false),
@@ -74,6 +78,21 @@ impl M8 {
 			kind: ErrorKind::NoDevice,
 			description: "M8 not found".to_string(),
 		})
+	}
+
+	pub fn set_reconnect(&mut self, reconnect: bool) {
+		self.reconnect = reconnect;
+	}
+
+	fn try_reconnect(&mut self) -> Result<(), String> {
+		if self.reconnect && self.lost {
+			if let Ok(mut new_self) = M8::detect() {
+				std::mem::swap(&mut self.port, &mut new_self.port);
+				self.lost = false;
+				self.reset(true)?;
+			}
+		}
+		Ok(())
 	}
 
 	pub fn open<T: AsRef<str>>(device: T) -> serialport::Result<Self> {
@@ -114,6 +133,7 @@ impl M8 {
 	}
 
 	pub fn read(&mut self) -> Result<Option<Command<'_>>, String> {
+		self.try_reconnect()?;
 		match self.slip.read(&mut self.port, &mut self.buf) {
 			Ok(Some(bytes)) if !bytes.is_empty() => match bytes[0] {
 				JOYPYAD_CMD if bytes.len() == 3 => Ok(None),
@@ -142,7 +162,13 @@ impl M8 {
 			},
 			Ok(None) => Ok(None),
 			Ok(_) => Err("empty command".to_string()),
-			Err(e) => Err(format!("read failed: {}", e)),
+			Err(e) if e.kind() == io::ErrorKind::BrokenPipe => {
+				if self.reconnect {
+					self.lost = true;
+				}
+				Ok(None)
+			}
+			Err(e) => Err(format!("read failed: {}", e.to_string())),
 		}
 	}
 
@@ -150,6 +176,7 @@ impl M8 {
 		match self.port.write(buf) {
 			Ok(n) if n != buf.len() => Err("failed to write command".to_string()),
 			Ok(_) => Ok(()),
+			Err(e) if e.kind() == io::ErrorKind::BrokenPipe => Ok(()),
 			Err(e) => Err(format!("write failed: {}", e)),
 		}
 	}

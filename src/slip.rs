@@ -25,10 +25,10 @@ impl<const N: usize> Slip<N> {
 		Self { state: SlipState::Normal, buf: [0; N], rmax: 0, rpos: 0, wpos: 0 }
 	}
 
-	fn push_byte(&mut self, byte: u8, buf: &mut [u8]) -> Result<(), String> {
+	fn push_byte(&mut self, byte: u8, buf: &mut [u8]) -> io::Result<()> {
 		if self.wpos >= buf.len() {
 			self.wpos = 0;
-			return Err("push_byte overflow".to_string());
+			return Err(io::Error::new(io::ErrorKind::InvalidData, "push_byte overflow"));
 		}
 		buf[self.wpos] = byte;
 		self.wpos += 1;
@@ -39,14 +39,14 @@ impl<const N: usize> Slip<N> {
 		&mut self,
 		port: &mut Box<dyn SerialPort>,
 		buf: &'a mut [u8],
-	) -> Result<Option<&'a [u8]>, String> {
+	) -> io::Result<Option<&'a [u8]>> {
 		loop {
 			if self.rpos >= self.rmax {
 				self.rpos = 0;
 				match port.read(&mut self.buf) {
 					Ok(n) => self.rmax = n,
 					Err(e) if e.kind() == io::ErrorKind::TimedOut => self.rmax = 0,
-					Err(e) => return Err(e.to_string()),
+					Err(e) => return Err(e),
 				}
 				if self.rmax == 0 {
 					return Ok(None);
@@ -62,7 +62,9 @@ impl<const N: usize> Slip<N> {
 							self.wpos = 0;
 							return Ok(Some(&buf[..end]));
 						}
-						END => return Err("empty command".to_string()),
+						END => {
+							return Err(io::Error::new(io::ErrorKind::InvalidData, "empty command"))
+						}
 						ESC => {
 							self.state = SlipState::Escape;
 							self.rpos += 1;
@@ -73,7 +75,12 @@ impl<const N: usize> Slip<N> {
 					SlipState::Escape => match byte {
 						ESC_END => self.push_byte(END, buf)?,
 						ESC_ESC => self.push_byte(ESC, buf)?,
-						_ => return Err(format!("invalid escape sequence: {:02x}", byte)),
+						_ => {
+							return Err(io::Error::new(
+								io::ErrorKind::InvalidData,
+								format!("invalid escape sequence: {:02x}", byte),
+							))
+						}
 					},
 				}
 				self.state = SlipState::Normal;

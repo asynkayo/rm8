@@ -317,6 +317,7 @@ pub fn app_to_page(page: &mut Page, config: &Config) {
 	int_to_item(items.next(), config.app.key_sensibility as usize);
 	bool_to_item(items.next(), config.app.show_fps);
 	int_to_item(items.next(), config.app.fps);
+	bool_to_item(items.next(), config.app.reconnect);
 }
 
 pub fn app_from_page(page: &Page) -> config::AppConfig {
@@ -328,6 +329,7 @@ pub fn app_from_page(page: &Page) -> config::AppConfig {
 		key_sensibility: int_from_item(items.next()) as u64,
 		show_fps: bool_from_item(items.next()),
 		fps: int_from_item(items.next()),
+		reconnect: bool_from_item(items.next()),
 	}
 }
 

@@ -94,6 +94,7 @@ On this page you will be able to configure:
 - Key sensibility
 - Show FPS
 - FPS (select desired number of FPS)
+- Reconnect (when using only one M8 device, try to reconnect in case the connection is lost, the default behavior is to quit)
 
 Press `RESET` to restore the application settings to their last saved state.
 

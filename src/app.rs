@@ -399,6 +399,7 @@ impl App {
 	fn action_modified(
 		&mut self,
 		canvas: &mut Canvas<Window>,
+		m8: &mut M8,
 		joystick_subsystem: &JoystickSubsystem,
 	) {
 		let mut dirty = false;
@@ -410,6 +411,7 @@ impl App {
 				if self.config.app.zoom != old_zoom {
 					draw::zoom_window(canvas.window_mut(), self.config.app.zoom);
 				}
+				m8.set_reconnect(self.config.app.reconnect);
 				dirty = true;
 			}
 			'T' => {
@@ -616,11 +618,12 @@ impl App {
 	pub fn process_action(
 		&mut self,
 		canvas: &mut Canvas<Window>,
+		m8: &mut M8,
 		joystick_subsystem: &JoystickSubsystem,
 		config_file: &Option<String>,
 	) -> Result<(), String> {
 		match self.action {
-			Action::Modified => self.action_modified(canvas, joystick_subsystem),
+			Action::Modified => self.action_modified(canvas, m8, joystick_subsystem),
 			Action::Do("SAVE") => self.action_save(config_file.as_deref())?,
 			Action::Do("RESET") => self.action_reset(config_file.as_deref(), joystick_subsystem)?,
 			Action::Do("REMAP") => self.remap = Some(Remap::new(&mut self.menu)),

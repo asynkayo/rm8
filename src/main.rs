@@ -58,6 +58,7 @@ fn main() -> Result<(), String> {
 		None => M8::detect(),
 	}
 	.map_err(|e| e.to_string())?;
+	m8.set_reconnect(app.config().app.reconnect);
 	m8.enable_and_reset_display()?;
 	m8.keyjazz.set(!app.config().overlap);
 
@@ -171,7 +172,7 @@ fn main() -> Result<(), String> {
 		app.handle_defer(&mut m8, &mut canvas)?;
 		if app.sync() {
 			if app.config_mode() {
-				app.process_action(&mut canvas, &joystick_subsystem, &config_file)?;
+				app.process_action(&mut canvas, &mut m8, &joystick_subsystem, &config_file)?;
 
 				canvas
 					.with_texture_canvas(&mut texture, |mut target| {
