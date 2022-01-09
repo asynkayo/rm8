@@ -95,6 +95,7 @@ On this page you will be able to configure:
 - Show FPS
 - FPS (select desired number of FPS)
 - Reconnect (when using only one M8 device, try to reconnect in case the connection is lost, the default behavior is to quit)
+- Device (when using multiple M8 devices, switch between them with this setting)
 
 Press `RESET` to restore the application settings to their last saved state.
 

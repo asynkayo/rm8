@@ -5,6 +5,7 @@ use crate::{
 	config::{self, Command},
 	draw::{Context, LINE_HEIGHT},
 	font,
+	m8::M8,
 };
 
 fn inc_hex(hex: &mut u8, add: u8) -> bool {
@@ -180,6 +181,38 @@ impl Rgb {
 }
 
 #[derive(Debug)]
+pub struct Device {
+	list: Vec<String>,
+	selected: usize,
+}
+
+impl Device {
+	pub fn new(device: Option<String>) -> Self {
+		let list = M8::list_ports().unwrap_or_default();
+		let selected = device.and_then(|ref dev| list.iter().position(|name| dev == name)).unwrap_or(0);
+		Self { list, selected }
+	}
+
+	pub fn value(&self) -> Option<&str> {
+		if self.selected < self.list.len() {
+			return Some(&self.list[self.selected]);
+		}
+		None
+	}
+
+	fn update_list(&mut self) {
+		if let Ok(list) = M8::list_ports() {
+			if list != self.list {
+				self.list = list;
+				if self.selected >= self.list.len() {
+					self.selected = self.list.len() - 1;
+				}
+			}
+		}
+	}
+}
+
+#[derive(Debug)]
 pub enum Input {
 	Bool(Bool),
 	Int(Int),
@@ -189,6 +222,7 @@ pub enum Input {
 	Key(Key),
 	Rgb(Rgb),
 	Font(Font),
+	Device(Device),
 }
 
 #[derive(Debug, PartialEq)]
@@ -229,7 +263,7 @@ impl Item {
 			Item::Action3(..) => 3,
 			Item::Input(_, input) => match input {
 				Input::Bool(_) | Input::Int(_) | Input::Font(_) | Input::Command(_) => 1,
-				Input::Command2(..) | Input::CommandLabel2(..) => 2,
+				Input::Command2(..) | Input::CommandLabel2(..) | Input::Device(..) => 2,
 				Input::Rgb(_) => 3,
 				Input::Key(Key { selected, .. }) => {
 					if *selected {
@@ -511,6 +545,32 @@ impl Item {
 					}
 					Edit::Click => {}
 				},
+				Input::Device(d) => match edit {
+					Edit::Next(_) => {
+						if cursor == 0 && !d.list.is_empty() && d.selected + 1 < d.list.len() {
+							d.selected += 1;
+							return Action::Modified;
+						}
+					}
+					Edit::Prev(_) => {
+						if cursor == 0 && !d.list.is_empty() && d.selected > 0 {
+							d.selected -= 1;
+							return Action::Modified;
+						}
+					}
+					Edit::Reset => {
+						if cursor == 0 && d.selected != 0 {
+							d.selected = 0;
+							return Action::Modified;
+						}
+					}
+					Edit::Click => {
+						if cursor == 1 {
+							d.update_list();
+							return Action::Modified;
+						}
+					}
+				},
 			},
 		}
 		Action::None
@@ -596,6 +656,16 @@ impl Item {
 				}
 				Input::Font(_) => {
 					(0, 0, font::width(config::Font::MAX_LENGTH) as u32, LINE_HEIGHT as u32)
+				}
+				Input::Device(_) => {
+					let width = font::width(10);
+					if cursor == 0 {
+						(0, 0, width as u32, LINE_HEIGHT as u32)
+					} else if cursor == 1 {
+						(width, 0, font::width(7) as u32, LINE_HEIGHT as u32)
+					} else {
+						(0, 0, 0, 0)
+					}
 				}
 			},
 		}
@@ -736,6 +806,17 @@ impl Item {
 					let fg = if cursor.is_some() { fg_screen } else { fg_value };
 					let s = format!("{}", f.value);
 					ctx.draw_str(&s, x, y, fg, fg)?;
+				}
+				Input::Device(d) => {
+					let width = font::width(10);
+					let (fg1, fg2) = match cursor {
+						Some(0) => (fg_screen, fg_value),
+						Some(1) => (fg_value, fg_screen),
+						_ => (fg_value, fg_value),
+					};
+					let dev = d.value().unwrap_or("").trim_start_matches("/dev/");
+					ctx.draw_str(dev, x, y, fg1, fg1)?;
+					ctx.draw_str("REFRESH", x + width, y, fg2, fg2)?;
 				}
 			},
 		}

@@ -19,6 +19,15 @@ pub struct Context<'a, 'b, 'c> {
 }
 
 impl<'a, 'b, 'c> Context<'_, '_, '_> {
+	pub fn clear(&mut self) -> Result<(), String> {
+		self.draw_rect((0, 0, m8::SCREEN_WIDTH, m8::SCREEN_HEIGHT), self.theme.screen)
+	}
+
+	pub fn draw_str_centered(&mut self, s: &str, y: i32, fg: Rgb, bg: Rgb) -> Result<(), String> {
+		let x = (m8::SCREEN_WIDTH as usize / 2) as i32 - font::width(s.len() / 2);
+		self.draw_str(s, x, y, fg, bg)
+	}
+
 	pub fn draw_str(&mut self, s: &str, x: i32, y: i32, fg: Rgb, bg: Rgb) -> Result<(), String> {
 		let mut x = x;
 		for ch in s.chars() {

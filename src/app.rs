@@ -31,6 +31,7 @@ use crate::{
 		update_joystick_pages,
 	},
 	nav::{Action, Direction, Edit, Navigation, Page},
+	nav::{Input, Item},
 	remap::Remap,
 	value::Value,
 };
@@ -85,8 +86,8 @@ impl App {
 		}
 	}
 
-	pub fn build_menu(&mut self) {
-		menu::build_menu(&mut self.menu, &self.config);
+	pub fn build_menu(&mut self, m8: &M8) {
+		menu::build_menu(&mut self.menu, m8, &self.config);
 	}
 
 	pub fn running(&self) -> bool {
@@ -401,7 +402,7 @@ impl App {
 		canvas: &mut Canvas<Window>,
 		m8: &mut M8,
 		joystick_subsystem: &JoystickSubsystem,
-	) {
+	) -> Result<(), String> {
 		let mut dirty = false;
 		let page = self.menu.page();
 		match page.short_name() {
@@ -411,7 +412,19 @@ impl App {
 				if self.config.app.zoom != old_zoom {
 					draw::zoom_window(canvas.window_mut(), self.config.app.zoom);
 				}
+				if let Some(Item::Input(_, Input::Device(d))) = page.items().nth(7) {
+					let device = d.value();
+					if device != m8.device_name().as_deref() {
+						if let Some(dev) = device {
+							if let Ok(new_m8) = M8::open(dev) {
+								*m8 = new_m8;
+								m8.enable_and_reset_display()?;
+							}
+						}
+					}
+				}
 				m8.set_reconnect(self.config.app.reconnect);
+				m8.keyjazz.set(!self.config.overlap);
 				dirty = true;
 			}
 			'T' => {
@@ -458,6 +471,7 @@ impl App {
 		if dirty {
 			self.menu.dirty();
 		}
+		Ok(())
 	}
 
 	fn action_save(&mut self, config_file: Option<&str>) -> Result<(), String> {
@@ -623,7 +637,7 @@ impl App {
 		config_file: &Option<String>,
 	) -> Result<(), String> {
 		match self.action {
-			Action::Modified => self.action_modified(canvas, m8, joystick_subsystem),
+			Action::Modified => self.action_modified(canvas, m8, joystick_subsystem)?,
 			Action::Do("SAVE") => self.action_save(config_file.as_deref())?,
 			Action::Do("RESET") => self.action_reset(config_file.as_deref(), joystick_subsystem)?,
 			Action::Do("REMAP") => self.remap = Some(Remap::new(&mut self.menu)),

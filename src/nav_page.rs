@@ -5,7 +5,7 @@ use crate::{
 	config::{self, Command},
 	draw::{Context, LINE_HEIGHT},
 	font,
-	nav_item::{Action, Bool, Direction, Edit, Font, Input, Int, Item, Key, Rgb},
+	nav_item::{Action, Bool, Device, Direction, Edit, Font, Input, Int, Item, Key, Rgb},
 };
 
 const PAD_X: i32 = 10;
@@ -315,5 +315,9 @@ impl Page {
 			label1.into(),
 			Input::CommandLabel2(cmd1, label2.into(), pad, cmd2),
 		))
+	}
+
+	pub fn add_device<I: Into<String>>(&mut self, label: I, device: Option<String>) {
+		self.add_item(Item::Input(label.into(), Input::Device(Device::new(device))))
 	}
 }

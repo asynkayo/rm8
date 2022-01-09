@@ -50,8 +50,6 @@ fn main() -> Result<(), String> {
 	if !cli::handle_command_line(app.config_mut(), &mut config_file, &mut device)? {
 		return Ok(());
 	}
-	app.build_menu();
-
 	// detect and connect to M8
 	let mut m8 = match device {
 		Some(dev) => M8::open(dev),
@@ -61,6 +59,8 @@ fn main() -> Result<(), String> {
 	m8.set_reconnect(app.config().app.reconnect);
 	m8.enable_and_reset_display()?;
 	m8.keyjazz.set(!app.config().overlap);
+
+	app.build_menu(&m8);
 
 	let sdl_context = sdl2::init()?;
 	let joystick_subsystem = sdl_context.joystick()?;
@@ -222,6 +222,11 @@ fn main() -> Result<(), String> {
 									Rgb::from_tuple(bg),
 								),
 							};
+						}
+						if m8.disconnected() {
+							let _ = ctx.clear();
+							let fg = ctx.theme.text_info;
+							let _ = ctx.draw_str_centered("M8 LOST", m8::SCREEN_HEIGHT as i32 / 2, fg, fg);
 						}
 						let (kc, vc, oc) =
 							(m8.keyjazz.changed(), m8.velocity.changed(), m8.octave.changed());

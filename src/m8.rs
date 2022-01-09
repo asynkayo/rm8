@@ -80,8 +80,16 @@ impl M8 {
 		})
 	}
 
+	pub fn device_name(&self) -> Option<String> {
+		self.port.name()
+	}
+
 	pub fn set_reconnect(&mut self, reconnect: bool) {
 		self.reconnect = reconnect;
+	}
+
+	pub fn disconnected(&self) -> bool {
+		self.lost
 	}
 
 	fn try_reconnect(&mut self) -> Result<(), String> {
@@ -90,6 +98,9 @@ impl M8 {
 				std::mem::swap(&mut self.port, &mut new_self.port);
 				self.lost = false;
 				self.reset(true)?;
+				if *self.keyjazz {
+					self.keyjazz.set_changed();
+				}
 			}
 		}
 		Ok(())
@@ -163,9 +174,7 @@ impl M8 {
 			Ok(None) => Ok(None),
 			Ok(_) => Err("empty command".to_string()),
 			Err(e) if e.kind() == io::ErrorKind::BrokenPipe => {
-				if self.reconnect {
-					self.lost = true;
-				}
+				self.lost = true;
 				Ok(None)
 			}
 			Err(e) => Err(format!("read failed: {}", e.to_string())),
