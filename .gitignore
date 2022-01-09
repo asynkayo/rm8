@@ -1,2 +1,4 @@
 /target
 Cargo.lock
+rm8-*-archlinux*
+rm8-*-win64*
