@@ -64,14 +64,14 @@ pub struct App {
 
 impl App {
 	pub fn new(running: Arc<AtomicBool>) -> Self {
-		let config = Config::default();
-		let menu = menu::build_menu(&config);
+		let mut config = Config::default();
+		let _ = config.read(CONFIG_FILE);
 		Self {
 			frame_ticks: time::Instant::now(),
 			config_ticks: time::Instant::now(),
 			joysticks: HashMap::<String, Joystick>::new(),
 			joystick_page: menu::build_joystick_page(),
-			menu,
+			menu: Navigation::new(),
 			action: Action::None,
 			in_config: false,
 			remap: None,
@@ -83,6 +83,10 @@ impl App {
 			fps_ticks: time::Instant::now(),
 			config,
 		}
+	}
+
+	pub fn build_menu(&mut self) {
+		menu::build_menu(&mut self.menu, &self.config);
 	}
 
 	pub fn running(&self) -> bool {

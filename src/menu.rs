@@ -3,8 +3,7 @@ use crate::{
 	nav::{Navigation, Page},
 };
 
-pub fn build_menu(config: &Config) -> Navigation {
-	let mut menu = Navigation::new();
+pub fn build_menu(menu: &mut Navigation, config: &Config) {
 	let mut theme_page = Page::new("THEME", 'T');
 	theme_page.add_rgb("TEXT:DEFAULT", config.theme.text_default);
 	theme_page.add_rgb("TEXT:VALUE", config.theme.text_value);
@@ -25,7 +24,7 @@ pub fn build_menu(config: &Config) -> Navigation {
 	app_page.add_font("FONT", config.app.font);
 	app_page.add_int("KEY SENS.", config.app.key_sensibility as usize, 60, 200, 10);
 	app_page.add_bool("SHOW_FPS", config.app.show_fps);
-	app_page.add_int("FPS", config.app.fps, 1, 100, 10);
+	app_page.add_int("FPS", config.app.fps, 1, 200, 10);
 	app_page.add_empty();
 	app_page.add_action2("RESET", "SAVE");
 	app_page.add_page_above(theme_page);
@@ -58,7 +57,6 @@ pub fn build_menu(config: &Config) -> Navigation {
 	menu.add_page(app_page);
 	menu.add_page(m8key_page);
 	menu.add_page(empty_joystick_page);
-	menu
 }
 
 pub fn build_joystick_page() -> Option<Page> {

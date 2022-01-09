@@ -40,7 +40,6 @@ fn main() -> Result<(), String> {
 	let running = Arc::new(AtomicBool::new(true));
 	let ctrlc_running = running.clone();
 	let mut app = App::new(running);
-	let _ = app.config_mut().read(app::CONFIG_FILE);
 
 	ctrlc::set_handler(move || ctrlc_running.store(false, atomic::Ordering::SeqCst))
 		.map_err(|e| e.to_string())?;
@@ -51,6 +50,7 @@ fn main() -> Result<(), String> {
 	if !cli::handle_command_line(app.config_mut(), &mut config_file, &mut device)? {
 		return Ok(());
 	}
+	app.build_menu();
 
 	// detect and connect to M8
 	let mut m8 = match device {
