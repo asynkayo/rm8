@@ -60,7 +60,7 @@ impl M8 {
 			if info.vid == VENDOR_ID && info.pid == PRODUCT_ID {
 				return Ok(Self {
 					port: serialport::new(&p.port_name, 115200)
-						.timeout(Duration::from_millis(0))
+						.timeout(Duration::from_millis(1))
 						.open()?,
 					reconnect: false,
 					lost: false,
@@ -186,7 +186,11 @@ impl M8 {
 			Ok(n) if n != buf.len() => Err("failed to write command".to_string()),
 			Ok(_) => Ok(()),
 			Err(e) if e.kind() == io::ErrorKind::BrokenPipe => Ok(()),
-			Err(e) => Err(format!("write failed: {}", e)),
+			Err(e) => {
+				// Err(format!("write failed: {}", e)),
+				println!("write failed: {}", e);
+				Ok(())
+			}
 		}
 	}
 
