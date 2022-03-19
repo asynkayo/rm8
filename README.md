@@ -18,6 +18,8 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
 
 `Alt + C` will enter config mode.
 
+`Alt + M` will toggle sound on or off.
+
 `Escape` will either quit the application or fullscreen mode or config mode or key remapping mode.
 
 ## Default key mapping
@@ -62,6 +64,8 @@ Run `rm8 -list` 	to list available M8 devices.
 
 Run `rm8 -dev DEVICE` 	to connect to the specified M8 device.
 
+Run `rm8 -cap "M8 Analog Stereo (2)"` 	to connect the given capture device to the default playback device.
+
 Run `rm8 -wc` 		to print the default config to the standard output.
 
 Run `rm8 -wc <FILE>` 	to write the config to the given file.
@@ -69,6 +73,12 @@ Run `rm8 -wc <FILE>` 	to write the config to the given file.
 Run `rm8 -rc <FILE>` 	to load the config from `FILE`.
 
 NOTE: The default config file name is `rm8.json`.
+
+# Audio
+
+`rm8` can now directly output the audio from your M8 !
+You can either run `rm8` and let it open the first M8 capture device it found or you can use the `-cap` command line argument to specify which M8 you want to use.
+For now there is no support for this feature in the in-app config system.
 
 # Config Mode
 

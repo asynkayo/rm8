@@ -13,6 +13,7 @@ use std::sync::{
 };
 
 mod app;
+mod audio;
 mod cli;
 mod config;
 mod config_command;
@@ -47,7 +48,8 @@ fn main() -> Result<(), String> {
 	// process command line arguments
 	let mut device: Option<String> = None;
 	let mut config_file: Option<String> = None;
-	if !cli::handle_command_line(app.config_mut(), &mut config_file, &mut device)? {
+	let mut capture: Option<String> = None;
+	if !cli::handle_command_line(app.config_mut(), &mut config_file, &mut device, &mut capture)? {
 		return Ok(());
 	}
 	// detect and connect to M8
@@ -65,6 +67,7 @@ fn main() -> Result<(), String> {
 	let sdl_context = sdl2::init()?;
 	let joystick_subsystem = sdl_context.joystick()?;
 	let video_subsystem = sdl_context.video()?;
+	let audio_subsystem = sdl_context.audio()?;
 	let zoom = app.config().app.zoom;
 	let mut window = video_subsystem
 		.window("rm8", m8::SCREEN_WIDTH * zoom, m8::SCREEN_HEIGHT * zoom)
@@ -78,6 +81,9 @@ fn main() -> Result<(), String> {
 	} else {
 		video::FullscreenType::Off
 	})?;
+
+	let mut audio = audio::open(&audio_subsystem, capture)?;
+	audio.resume();
 
 	let mut canvas = window.into_canvas().accelerated().build().map_err(|e| e.to_string())?;
 	canvas.set_logical_size(m8::SCREEN_WIDTH, m8::SCREEN_HEIGHT).map_err(|e| e.to_string())?;
@@ -119,6 +125,9 @@ fn main() -> Result<(), String> {
 							Keycode::R if !app.config_mode() => {
 								m8.reset(keymod.intersects(Mod::LSHIFTMOD | Mod::RSHIFTMOD))?;
 								continue;
+							}
+							Keycode::M => {
+								audio.toggle();
 							}
 							_ => {}
 						}
@@ -226,7 +235,12 @@ fn main() -> Result<(), String> {
 						if m8.disconnected() {
 							let _ = ctx.clear();
 							let fg = ctx.theme.text_info;
-							let _ = ctx.draw_str_centered("M8 LOST", m8::SCREEN_HEIGHT as i32 / 2, fg, fg);
+							let _ = ctx.draw_str_centered(
+								"M8 LOST",
+								m8::SCREEN_HEIGHT as i32 / 2,
+								fg,
+								fg,
+							);
 						}
 						let (kc, vc, oc) =
 							(m8.keyjazz.changed(), m8.velocity.changed(), m8.octave.changed());

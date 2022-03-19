@@ -9,6 +9,7 @@ Available options:
 	-version	Display the version of the program
 	-list		List available M8 devices
 	-dev DEVICE	Connect to the the given M8 device
+	-cap DEVICE Connect the given capture device to the default playback device
 	-wc		Write the default configuration to the standard output
 	-wc FILE	Write the default configuration to the given file
 	-rc FILE	Read the configuration from the given file";
@@ -17,6 +18,7 @@ pub fn handle_command_line(
 	config: &mut Config,
 	config_file: &mut Option<String>,
 	device: &mut Option<String>,
+	capture: &mut Option<String>,
 ) -> Result<bool, String> {
 	let mut args = env::args().skip(1);
 	match (args.next().as_deref(), args.next()) {
@@ -51,6 +53,10 @@ pub fn handle_command_line(
 			return Ok(true);
 		}
 		(Some("-dev"), None) => return Err("Error: missing device argument".to_string()),
+		(Some("-cap"), Some(cap)) => {
+			capture.replace(cap);
+			return Ok(true);
+		}
 		_ => return Ok(true),
 	};
 	Ok(false)
