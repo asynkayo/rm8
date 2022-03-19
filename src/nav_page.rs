@@ -5,7 +5,7 @@ use crate::{
 	config::{self, Command},
 	draw::{Context, LINE_HEIGHT},
 	font,
-	nav_item::{Action, Bool, Device, Direction, Edit, Font, Input, Int, Item, Key, Rgb},
+	nav_item::{Action, Audio, Bool, Device, Direction, Edit, Font, Input, Int, Item, Key, Rgb},
 };
 
 const PAD_X: i32 = 10;
@@ -319,5 +319,9 @@ impl Page {
 
 	pub fn add_device<I: Into<String>>(&mut self, label: I, device: Option<String>) {
 		self.add_item(Item::Input(label.into(), Input::Device(Device::new(device))))
+	}
+
+	pub fn add_audio<I: Into<String>>(&mut self, label: I, device: Option<String>) {
+		self.add_item(Item::Input(label.into(), Input::Audio(Audio::new(device))))
 	}
 }

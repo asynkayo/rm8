@@ -18,8 +18,6 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
 
 `Alt + C` will enter config mode.
 
-`Alt + M` will toggle sound on or off.
-
 `Escape` will either quit the application or fullscreen mode or config mode or key remapping mode.
 
 ## Default key mapping

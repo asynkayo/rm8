@@ -423,6 +423,14 @@ impl App {
 						}
 					}
 				}
+				if let Some(Item::Input(_, Input::Audio(d))) = page.items().nth(8) {
+					let device = d.value();
+					if device != m8.capture_device_name().as_deref() {
+						if let Some(dev) = device {
+							m8.reopen_audio(dev.to_string())?;
+						}
+					}
+				}
 				m8.set_reconnect(self.config.app.reconnect);
 				m8.keyjazz.set(!self.config.overlap);
 				dirty = true;

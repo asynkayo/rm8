@@ -38,36 +38,36 @@ pub struct Audio {
 	name: String,
 }
 
-fn real_open(audio: &sdl2::AudioSubsystem, device_name: String) -> Result<Audio, String> {
-	let spec = AudioSpecDesired { freq: Some(44100), channels: None, samples: None };
-	let (done_sender, done_receiver) = mpsc::channel();
-	let capture = audio.open_capture(Some(device_name.as_ref()), &spec, |spec| Capture {
-		done_sender,
-		size: spec.samples as usize * 2,
-	})?;
-	let playback = audio.open_playback(None, &spec, |_spec| Playback { done_receiver })?;
+impl Audio {
+	fn real_open(audio: &sdl2::AudioSubsystem, device_name: String) -> Result<Self, String> {
+		let spec = AudioSpecDesired { freq: Some(44100), channels: None, samples: None };
+		let (done_sender, done_receiver) = mpsc::channel();
+		let capture = audio.open_capture(Some(device_name.as_ref()), &spec, |spec| Capture {
+			done_sender,
+			size: spec.samples as usize * 2,
+		})?;
+		let playback = audio.open_playback(None, &spec, |_spec| Playback { done_receiver })?;
 
-	return Ok(Audio { playing: false, capture, playback, name: device_name });
-}
+		return Ok(Self { playing: false, capture, playback, name: device_name });
+	}
 
-pub fn open(audio: &sdl2::AudioSubsystem, name: Option<String>) -> Result<Audio, String> {
-	if let Some(device_name) = name {
-		real_open(audio, device_name)
-	} else {
-		for i in 0..audio.num_audio_capture_devices().unwrap_or(0) {
-			if let Ok(device_name) = audio.audio_capture_device_name(i) {
-				if device_name.starts_with("M8 Analog Stereo") {
-					return real_open(audio, device_name);
+	pub fn open(audio: &sdl2::AudioSubsystem, name: Option<String>) -> Result<Self, String> {
+		if let Some(device_name) = name {
+			Self::real_open(audio, device_name)
+		} else {
+			for i in 0..audio.num_audio_capture_devices().unwrap_or(0) {
+				if let Ok(device_name) = audio.audio_capture_device_name(i) {
+					if device_name.starts_with("M8 Analog Stereo") {
+						return Self::real_open(audio, device_name);
+					}
 				}
 			}
+			Err("No M8 audio device found".to_string())
 		}
-		Err("No M8 audio device found".to_string())
 	}
-}
 
-impl Audio {
 	pub fn reopen(&mut self, audio: &sdl2::AudioSubsystem, name: String) -> Result<(), String> {
-		*self = real_open(audio, name)?;
+		*self = Self::real_open(audio, name)?;
 		Ok(())
 	}
 
@@ -89,5 +89,9 @@ impl Audio {
 		self.playing = true;
 		self.capture.resume();
 		self.playback.resume();
+	}
+
+	pub fn name(&self) -> String {
+		self.name.clone()
 	}
 }

@@ -82,8 +82,7 @@ fn main() -> Result<(), String> {
 		video::FullscreenType::Off
 	})?;
 
-	let mut audio = audio::open(&audio_subsystem, capture)?;
-	audio.resume();
+	m8.connect_audio(audio::Audio::open(&audio_subsystem, capture)?);
 
 	let mut canvas = window.into_canvas().accelerated().build().map_err(|e| e.to_string())?;
 	canvas.set_logical_size(m8::SCREEN_WIDTH, m8::SCREEN_HEIGHT).map_err(|e| e.to_string())?;
@@ -125,9 +124,6 @@ fn main() -> Result<(), String> {
 							Keycode::R if !app.config_mode() => {
 								m8.reset(keymod.intersects(Mod::LSHIFTMOD | Mod::RSHIFTMOD))?;
 								continue;
-							}
-							Keycode::M => {
-								audio.toggle();
 							}
 							_ => {}
 						}

@@ -1,8 +1,11 @@
 use serialport::{available_ports, ErrorKind, SerialPort, SerialPortType};
 use std::{io, time::Duration};
 
-use crate::slip::Slip;
-use crate::value::Value;
+use crate::{
+	audio::{self, Audio},
+	slip::Slip,
+	value::Value,
+};
 
 const VENDOR_ID: u16 = 0x16c0;
 const PRODUCT_ID: u16 = 0x048a;
@@ -46,6 +49,7 @@ pub struct M8 {
 	pub octave: Value<u8>,
 	pub velocity: Value<u8>,
 	pub keys: Value<u8>,
+	audio: Option<Audio>,
 }
 
 impl Drop for M8 {
@@ -55,10 +59,41 @@ impl Drop for M8 {
 }
 
 impl M8 {
+	pub fn list_capture_devices() -> Result<Vec<String>, String> {
+		// TODO:
+		Ok(vec!["M8 Analog Stereo".to_string()])
+	}
+
+	pub fn capture_device_name(&self) -> Option<String> {
+		self.audio.as_ref().map(|a| a.name())
+	}
+
+	pub fn connect_audio(&mut self, audio: Audio) {
+		let mut audio = audio;
+		audio.resume();
+		self.audio.replace(audio);
+	}
+
+	pub fn toggle_audio(&mut self) {
+		if let Some(ref mut audio) = self.audio {
+			audio.toggle();
+		}
+	}
+
+	pub fn reopen_audio(&mut self, name: String) -> Result<(), String> {
+		if let Some(ref mut audio) = self.audio {
+			audio.reopen(todo!(), name)
+		} else {
+			self.audio.replace(audio::Audio::open(todo!(), Some(name))?);
+			Ok(())
+		}
+	}
+
 	fn open_serial(p: &serialport::SerialPortInfo) -> serialport::Result<Self> {
 		if let SerialPortType::UsbPort(ref info) = p.port_type {
 			if info.vid == VENDOR_ID && info.pid == PRODUCT_ID {
 				return Ok(Self {
+					audio: None,
 					port: serialport::new(&p.port_name, 115200)
 						.timeout(Duration::from_millis(1))
 						.open()?,

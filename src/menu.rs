@@ -1,6 +1,6 @@
 use crate::{
-	m8::M8,
 	config::{Command, Config, DEFAULT_SENSIBILITY},
+	m8::M8,
 	nav::{Navigation, Page},
 };
 
@@ -28,6 +28,7 @@ pub fn build_menu(menu: &mut Navigation, m8: &M8, config: &Config) {
 	app_page.add_int("FPS", config.app.fps, 1, 200, 10);
 	app_page.add_bool("RECONNECT", config.app.reconnect);
 	app_page.add_device("DEVICE", m8.device_name());
+	app_page.add_audio("AUDIO", m8.capture_device_name());
 	app_page.add_empty();
 	app_page.add_action2("RESET", "SAVE");
 	app_page.add_page_above(theme_page);
