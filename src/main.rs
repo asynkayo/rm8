@@ -180,10 +180,10 @@ fn main() -> Result<(), String> {
 				app.process_action(&mut canvas, &mut m8, &joystick_subsystem, &config_file)?;
 
 				canvas
-					.with_texture_canvas(&mut texture, |mut target| {
+					.with_texture_canvas(&mut texture, |target| {
 						let config = app.config();
 						let ctx = &mut draw::Context {
-							canvas: &mut target,
+							canvas: target,
 							font: &mut font,
 							theme: config.theme,
 							font_option: config.app.font,
@@ -202,10 +202,10 @@ fn main() -> Result<(), String> {
 				}
 
 				canvas
-					.with_texture_canvas(&mut texture, |mut target| {
+					.with_texture_canvas(&mut texture, |target| {
 						let config = app.config();
 						let ctx = &mut draw::Context {
-							canvas: &mut target,
+							canvas: target,
 							font: &mut font,
 							theme: config.theme,
 							font_option: config.app.font,

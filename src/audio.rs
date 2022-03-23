@@ -48,7 +48,7 @@ impl Audio {
 		})?;
 		let playback = audio.open_playback(None, &spec, |_spec| Playback { done_receiver })?;
 
-		return Ok(Self { playing: false, capture, playback, name: device_name });
+		Ok(Self { playing: false, capture, playback, name: device_name })
 	}
 
 	pub fn open(audio: &sdl2::AudioSubsystem, name: Option<String>) -> Result<Self, String> {

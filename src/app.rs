@@ -489,19 +489,19 @@ impl App {
 				if let Some(sub) = page.find('T') {
 					self.config.theme = theme_from_page(sub);
 				}
-				self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+				self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 			}
 			'T' => {
-				self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+				self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 			}
 			'K' => {
 				if let Some(sub) = page.find('R') {
 					self.config.rm8 = rm8_keys_from_page(sub);
 				}
-				self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+				self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 			}
 			'R' => {
-				self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+				self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 			}
 			'J' => {
 				if let Some(guid) = selected_joystick_guid(&self.menu) {
@@ -517,24 +517,24 @@ impl App {
 							cfg.hats = Some(hats_from_page(sub));
 						}
 					}
-					self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+					self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 				}
 			}
 			'B' => {
 				if selected_joystick_guid(&self.menu).is_some() {
-					self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+					self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 				}
 			}
 			'A' => {
 				if selected_joystick_guid(&self.menu).is_some() {
-					self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+					self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 				}
 			}
 			'H' => {
 				if selected_joystick_guid(&self.menu).is_some()
 					&& joystick_has_hats(self.menu.main_page())
 				{
-					self.config.write(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+					self.config.write(config_file.unwrap_or(CONFIG_FILE))?;
 				}
 			}
 			_ => {}
@@ -549,27 +549,27 @@ impl App {
 	) -> Result<(), String> {
 		let mut dirty = true;
 		let mut cfg = Config::default();
-		cfg.read(config_file.as_deref().unwrap_or(CONFIG_FILE))?;
+		cfg.read(config_file.unwrap_or(CONFIG_FILE))?;
 		match self.menu.page().short_name() {
 			'C' => {
-				let mut page = self.menu.page_mut();
+				let page = self.menu.page_mut();
 				self.config.app = cfg.app;
-				app_to_page(&mut page, &self.config);
+				app_to_page(page, &self.config);
 			}
 			'T' => {
-				let mut page = self.menu.page_mut();
+				let page = self.menu.page_mut();
 				self.config.theme = cfg.theme;
-				theme_to_page(&mut page, &self.config);
+				theme_to_page(page, &self.config);
 			}
 			'K' => {
-				let mut page = self.menu.page_mut();
+				let page = self.menu.page_mut();
 				self.config.m8 = cfg.m8;
-				m8_to_page(&mut page, &self.config);
+				m8_to_page(page, &self.config);
 			}
 			'R' => {
-				let mut page = self.menu.page_mut();
+				let page = self.menu.page_mut();
 				self.config.rm8 = cfg.rm8;
-				rm8_to_page(&mut page, &self.config);
+				rm8_to_page(page, &self.config);
 			}
 			'J' => {
 				if let Some(guid) = selected_joystick_guid(&self.menu) {
@@ -592,12 +592,12 @@ impl App {
 				if let Some(guid) = selected_joystick_guid(&self.menu) {
 					let old = self.config.joysticks.get_mut(guid);
 					let new = cfg.joysticks.remove(guid);
-					let mut page = self.menu.page_mut();
+					let page = self.menu.page_mut();
 					if let (Some(old), Some(new)) = (old, new) {
-						update_axes_page(&mut page, &new);
+						update_axes_page(page, &new);
 						old.axes = new.axes;
 					} else {
-						clear_axes_page(&mut page);
+						clear_axes_page(page);
 					}
 				}
 			}
@@ -605,12 +605,12 @@ impl App {
 				if let Some(guid) = selected_joystick_guid(&self.menu) {
 					let old = self.config.joysticks.get_mut(guid);
 					let new = cfg.joysticks.remove(guid);
-					let mut page = self.menu.page_mut();
+					let page = self.menu.page_mut();
 					if let (Some(old), Some(new)) = (old, new) {
-						update_buttons_page(&mut page, &new);
+						update_buttons_page(page, &new);
 						old.buttons = new.buttons;
 					} else {
-						clear_buttons_page(&mut page);
+						clear_buttons_page(page);
 					}
 				}
 			}
@@ -618,12 +618,12 @@ impl App {
 				if let Some(guid) = selected_joystick_guid(&self.menu) {
 					let old = self.config.joysticks.get_mut(guid);
 					let new = cfg.joysticks.remove(guid);
-					let mut page = self.menu.page_mut();
+					let page = self.menu.page_mut();
 					if let (Some(old), Some(new)) = (old, new) {
-						update_hats_page(&mut page, &new);
+						update_hats_page(page, &new);
 						old.hats = new.hats;
 					} else {
-						clear_hats_page(&mut page);
+						clear_hats_page(page);
 					}
 				}
 			}

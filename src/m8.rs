@@ -212,7 +212,7 @@ impl M8 {
 				self.lost = true;
 				Ok(None)
 			}
-			Err(e) => Err(format!("read failed: {}", e.to_string())),
+			Err(e) => Err(format!("read failed: {}", e)),
 		}
 	}
 
