@@ -146,6 +146,7 @@ fn main() -> Result<(), String> {
 					if app.remap_mode() {
 						if app.remap(keycode) {
 							app.cancel_remap_mode();
+							app.action_modified(&mut canvas, &mut m8, &joystick_subsystem)?;
 						}
 						continue;
 					}

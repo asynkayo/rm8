@@ -397,7 +397,7 @@ impl App {
 		self.keys.set(0);
 	}
 
-	fn action_modified(
+	pub fn action_modified(
 		&mut self,
 		canvas: &mut Canvas<Window>,
 		m8: &mut M8,
