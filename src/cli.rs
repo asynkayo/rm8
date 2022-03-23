@@ -45,6 +45,7 @@ pub fn handle_command_line(
 			if let Err(e) = config.read(&file) {
 				return Err(format!("Error: loading config file `{}` ({})", file, e));
 			}
+			config_file.replace(file);
 			return Ok(true);
 		}
 		(Some("-rc"), None) => return Err("Error: missing config file argument".to_string()),
