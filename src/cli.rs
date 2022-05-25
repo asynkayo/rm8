@@ -5,20 +5,22 @@ use crate::m8::M8;
 
 const USAGE: &str = "Usage rm8 [options]
 Available options:
-	-help		Display this help screen
-	-version	Display the version of the program
-	-list		List available M8 devices
-	-dev DEVICE	Connect to the the given M8 device
-	-cap DEVICE Connect the given capture device to the default playback device
-	-wc		Write the default configuration to the standard output
-	-wc FILE	Write the default configuration to the given file
-	-rc FILE	Read the configuration from the given file";
+	-help		 Display this help screen
+	-version	 Display the version of the program
+	-list		 List available M8 devices
+	-dev DEVICE	 Connect to the the given M8 device
+	-cap DEVICE  Connect the given capture device to the default playback device
+	-smp SAMPLES Use the specified number of samples for audio processing
+	-wc			 Write the default configuration to the standard output
+	-wc FILE	 Write the default configuration to the given file
+	-rc FILE	 Read the configuration from the given file";
 
 pub fn handle_command_line(
 	config: &mut Config,
 	config_file: &mut Option<String>,
 	device: &mut Option<String>,
 	capture: &mut Option<String>,
+	samples: &mut Option<u16>,
 ) -> Result<bool, String> {
 	let mut args = env::args().skip(1);
 	match (args.next().as_deref(), args.next()) {
@@ -58,6 +60,12 @@ pub fn handle_command_line(
 			capture.replace(cap);
 			return Ok(true);
 		}
+		(Some("-smp"), Some(smp)) => {
+			let smp = smp.parse().map_err(|_| "Error: invalid samples argument".to_string())?;
+			samples.replace(smp);
+			return Ok(true);
+		}
+		(Some("-smp"), None) => return Err("Error: missing samples argument".to_string()),
 		_ => return Ok(true),
 	};
 	Ok(false)

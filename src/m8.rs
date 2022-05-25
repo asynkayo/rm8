@@ -82,9 +82,9 @@ impl M8 {
 
 	pub fn reopen_audio(&mut self, name: String) -> Result<(), String> {
 		if let Some(ref mut audio) = self.audio {
-			audio.reopen(todo!(), name)
+			audio.reopen(todo!(), name, todo!())
 		} else {
-			self.audio.replace(audio::Audio::open(todo!(), Some(name))?);
+			self.audio.replace(audio::Audio::open(todo!(), Some(name), todo!())?);
 			Ok(())
 		}
 	}
