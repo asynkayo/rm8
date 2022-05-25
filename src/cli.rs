@@ -21,52 +21,61 @@ pub fn handle_command_line(
 	device: &mut Option<String>,
 	capture: &mut Option<String>,
 	samples: &mut Option<u16>,
-) -> Result<bool, String> {
+) -> Result<(), String> {
 	let mut args = env::args().skip(1);
-	match (args.next().as_deref(), args.next()) {
-		(Some("-version"), None) => println!("rm8 v{}", env!("CARGO_PKG_VERSION")),
-		(Some("-help"), None) => eprintln!("{}", USAGE),
-		(Some("-list"), None) => {
-			let ports = M8::list_ports().map_err(|e| e.to_string())?;
-			println!("{}", if ports.is_empty() { "No M8 found" } else { "M8 found:" });
-			for port in ports {
-				println!("\t- {}", port);
+	loop {
+		match (args.next().as_deref(), args.next()) {
+			(Some("-version"), None) => {
+				println!("rm8 v{}", env!("CARGO_PKG_VERSION"));
+				break;
 			}
-		}
-		(Some("-wc"), Some(file)) => {
-			if let Err(e) = config.write(&file) {
-				return Err(format!("Error: writing config to file {} ({})", &file, e));
+			(Some("-help"), None) => {
+				eprintln!("{}", USAGE);
+				break;
 			}
-			config_file.replace(file);
-		}
-		(Some("-wc"), None) => match config.dump() {
-			Ok(json) => println!("{}", json),
-			Err(e) => return Err(format!("Error: dumping config ({})", e)),
-		},
-		(Some("-rc"), Some(file)) => {
-			if let Err(e) = config.read(&file) {
-				return Err(format!("Error: loading config file `{}` ({})", file, e));
+			(Some("-list"), None) => {
+				let ports = M8::list_ports().map_err(|e| e.to_string())?;
+				println!("{}", if ports.is_empty() { "No M8 found" } else { "M8 found:" });
+				for port in ports {
+					println!("\t- {}", port);
+				}
+				break;
 			}
-			config_file.replace(file);
-			return Ok(true);
-		}
-		(Some("-rc"), None) => return Err("Error: missing config file argument".to_string()),
-		(Some("-dev"), Some(dev)) => {
-			device.replace(dev);
-			return Ok(true);
-		}
-		(Some("-dev"), None) => return Err("Error: missing device argument".to_string()),
-		(Some("-cap"), Some(cap)) => {
-			capture.replace(cap);
-			return Ok(true);
-		}
-		(Some("-smp"), Some(smp)) => {
-			let smp = smp.parse().map_err(|_| "Error: invalid samples argument".to_string())?;
-			samples.replace(smp);
-			return Ok(true);
-		}
-		(Some("-smp"), None) => return Err("Error: missing samples argument".to_string()),
-		_ => return Ok(true),
-	};
-	Ok(false)
+			(Some("-wc"), Some(file)) => {
+				if let Err(e) = config.write(&file) {
+					return Err(format!("Error: writing config to file {} ({})", &file, e));
+				}
+				config_file.replace(file);
+				break;
+			}
+			(Some("-wc"), None) => match config.dump() {
+				Ok(json) => {
+					println!("{}", json);
+					break;
+				}
+				Err(e) => return Err(format!("Error: dumping config ({})", e)),
+			},
+			(Some("-rc"), Some(file)) => {
+				if let Err(e) = config.read(&file) {
+					return Err(format!("Error: loading config file `{}` ({})", file, e));
+				}
+				config_file.replace(file);
+			}
+			(Some("-rc"), None) => return Err("Error: missing config file argument".to_string()),
+			(Some("-dev"), Some(dev)) => {
+				device.replace(dev);
+			}
+			(Some("-dev"), None) => return Err("Error: missing device argument".to_string()),
+			(Some("-cap"), Some(cap)) => {
+				capture.replace(cap);
+			}
+			(Some("-smp"), Some(smp)) => {
+				let smp = smp.parse().map_err(|_| "Error: invalid samples argument".to_string())?;
+				samples.replace(smp);
+			}
+			(Some("-smp"), None) => return Err("Error: missing samples argument".to_string()),
+			_ => return Ok(()),
+		};
+	}
+	Ok(())
 }

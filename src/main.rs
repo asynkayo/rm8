@@ -50,15 +50,13 @@ fn main() -> Result<(), String> {
 	let mut config_file: Option<String> = None;
 	let mut capture: Option<String> = None;
 	let mut samples: Option<u16> = None;
-	if !cli::handle_command_line(
+	cli::handle_command_line(
 		app.config_mut(),
 		&mut config_file,
 		&mut device,
 		&mut capture,
 		&mut samples,
-	)? {
-		return Ok(());
-	}
+	)?;
 	// detect and connect to M8
 	let mut m8 = match device {
 		Some(dev) => M8::open(dev),
