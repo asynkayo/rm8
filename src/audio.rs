@@ -48,7 +48,7 @@ impl Audio {
 		let (done_sender, done_receiver) = mpsc::channel();
 		let capture = audio.open_capture(Some(device_name.as_ref()), &spec, |spec| Capture {
 			done_sender,
-			size: samples.unwrap_or(spec.samples as u16 * 2) as usize,
+			size: samples.unwrap_or(spec.samples as u16) as usize * 2,
 		})?;
 		let playback = audio.open_playback(None, &spec, |_spec| Playback { done_receiver })?;
 
