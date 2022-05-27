@@ -50,13 +50,18 @@ fn main() -> Result<(), String> {
 	let mut config_file: Option<String> = None;
 	let mut capture: Option<String> = None;
 	let mut samples: Option<u16> = None;
-	cli::handle_command_line(
+	let mut noaudio = false;
+	if !cli::handle_command_line(
 		app.config_mut(),
 		&mut config_file,
 		&mut device,
 		&mut capture,
 		&mut samples,
-	)?;
+		&mut noaudio,
+	)? {
+		return Ok(());
+	}
+
 	// detect and connect to M8
 	let mut m8 = match device {
 		Some(dev) => M8::open(dev),
@@ -87,7 +92,9 @@ fn main() -> Result<(), String> {
 		video::FullscreenType::Off
 	})?;
 
-	m8.connect_audio(audio::Audio::open(&audio_subsystem, capture, samples)?);
+	if !noaudio {
+		m8.connect_audio(audio::Audio::open(&audio_subsystem, capture, samples)?);
+	}
 
 	let mut canvas = window.into_canvas().accelerated().build().map_err(|e| e.to_string())?;
 	canvas.set_logical_size(m8::SCREEN_WIDTH, m8::SCREEN_HEIGHT).map_err(|e| e.to_string())?;

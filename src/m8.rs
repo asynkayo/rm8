@@ -50,6 +50,7 @@ pub struct M8 {
 	pub velocity: Value<u8>,
 	pub keys: Value<u8>,
 	audio: Option<Audio>,
+	loopback: bool,
 }
 
 impl Drop for M8 {
@@ -72,6 +73,7 @@ impl M8 {
 		let mut audio = audio;
 		audio.resume();
 		self.audio.replace(audio);
+		self.loopback = true;
 	}
 
 	pub fn toggle_audio(&mut self) {
@@ -81,6 +83,9 @@ impl M8 {
 	}
 
 	pub fn reopen_audio(&mut self, name: String) -> Result<(), String> {
+		if !self.loopback {
+			return Ok(());
+		}
 		if let Some(ref mut audio) = self.audio {
 			audio.reopen(todo!(), name, todo!())
 		} else {
@@ -94,6 +99,7 @@ impl M8 {
 			if info.vid == VENDOR_ID && info.pid == PRODUCT_ID {
 				return Ok(Self {
 					audio: None,
+					loopback: false,
 					port: serialport::new(&p.port_name, 115200)
 						.timeout(Duration::from_millis(1))
 						.open()?,
