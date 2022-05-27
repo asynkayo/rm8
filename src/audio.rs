@@ -39,26 +39,34 @@ pub struct Audio {
 }
 
 impl Audio {
-	fn real_open(audio: &sdl2::AudioSubsystem, device_name: String) -> Result<Self, String> {
-		let spec = AudioSpecDesired { freq: Some(44100), channels: None, samples: None };
+	fn real_open(
+		audio: &sdl2::AudioSubsystem,
+		device_name: String,
+		samples: Option<u16>,
+	) -> Result<Self, String> {
+		let spec = AudioSpecDesired { freq: Some(44100), channels: None, samples };
 		let (done_sender, done_receiver) = mpsc::channel();
 		let capture = audio.open_capture(Some(device_name.as_ref()), &spec, |spec| Capture {
 			done_sender,
-			size: spec.samples as usize * 2,
+			size: samples.unwrap_or(spec.samples as u16) as usize * 2,
 		})?;
 		let playback = audio.open_playback(None, &spec, |_spec| Playback { done_receiver })?;
 
 		Ok(Self { playing: false, capture, playback, name: device_name })
 	}
 
-	pub fn open(audio: &sdl2::AudioSubsystem, name: Option<String>) -> Result<Self, String> {
+	pub fn open(
+		audio: &sdl2::AudioSubsystem,
+		name: Option<String>,
+		samples: Option<u16>,
+	) -> Result<Self, String> {
 		if let Some(device_name) = name {
-			Self::real_open(audio, device_name)
+			Self::real_open(audio, device_name, samples)
 		} else {
 			for i in 0..audio.num_audio_capture_devices().unwrap_or(0) {
 				if let Ok(device_name) = audio.audio_capture_device_name(i) {
 					if device_name.starts_with("M8 Analog Stereo") {
-						return Self::real_open(audio, device_name);
+						return Self::real_open(audio, device_name, samples);
 					}
 				}
 			}
@@ -66,8 +74,13 @@ impl Audio {
 		}
 	}
 
-	pub fn reopen(&mut self, audio: &sdl2::AudioSubsystem, name: String) -> Result<(), String> {
-		*self = Self::real_open(audio, name)?;
+	pub fn reopen(
+		&mut self,
+		audio: &sdl2::AudioSubsystem,
+		name: String,
+		samples: Option<u16>,
+	) -> Result<(), String> {
+		*self = Self::real_open(audio, name, samples)?;
 		Ok(())
 	}
 
