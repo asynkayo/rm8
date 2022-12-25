@@ -1,19 +1,113 @@
 name: Build & Release
 
 on:
-  push
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  create_release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: ["arm-unknown-linux-gnueabi", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-gnu"]
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: create_release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          draft: false
+          prerelease: false
+          release_name: Automated Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+          body: This is an automated release for ${{ github.ref }}.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: create_release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build x86_64-unknown-linux-gnu
+        run: sudo scripts/build_linux.sh rm8-linux-x86_64.zip
+      - name: upload rm8-linux-x86_64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-x86_64.zip
+          asset_name: rm8-linux-x86_64.zip
+          asset_content_type: application/zip
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Build aarch64-unknown-linux-gnu
+        run: docker run --platform linux/arm64 --rm -v "${PWD}:/work" -w /work rust /work/scripts/build_linux.sh rm8-linux-aarch64.zip
+      - name: upload rm8-linux-aarch64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-aarch64.zip
+          asset_name: rm8-linux-aarch64.zip
+          asset_content_type: application/zip
+      - name: Build arm-unknown-linux-gnu
+        run: docker run --platform linux/arm --rm -v "${PWD}:/work" -w /work rust /work/scripts/build_linux.sh rm8-linux-arm32.zip
+      - name: upload rm8-linux-arm32 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-arm32.zip
+          asset_name: rm8-linux-arm32.zip
+          asset_content_type: application/zip
+  build-mac:
+    runs-on: macos-latest
+    needs: create_release
     steps:
       - uses: actions/checkout@v3
       - name: Install Build Deps
-        run: >
-          sudo apt install -y libsdl2-dev
-          cargo install cross --git https://github.com/cross-rs/cross
-      - name: Build
-        run: cross build --target ${{ matrix.version }} --release
+        run: brew install sdl2
+      - name: Build x86_64-apple-darwin
+        run: cargo build --release && cp target/release/rm8 . && zip -r rm8-mac.zip rm8 *.json README.md
+      - name: upload x86_64-apple-darwin artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-mac.zip
+          asset_name: rm8-mac.zip
+          asset_content_type: application/zip
+  build-windows:
+    runs-on: windows-latest
+    needs: create_release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download SDL
+        uses: suisei-cn/actions-download-file@v1.3.0
+        with:
+          url: "https://github.com/libsdl-org/SDL/releases/download/release-2.26.1/SDL2-devel-2.26.1-VC.zip"
+          target: .
+      - name: Unzip SDL
+        run: unzip -a SDL2-devel-2.26.1-VC.zip && copy SDL2-2.26.1\lib\x64\SDL2.dll .
+      - name: Build x86_64-pc-windows-gnu
+        run: cargo build --release && mkdir target/out && copy target/release/rm8.exe target/out && copy SDL2.dll target/out && copy *.json target/out && copy README.md target/out
+        env:
+          LIB: SDL2-2.26.1\lib\x64\
+      - name: Archive Release
+        uses: thedoctor0/zip-release@main
+        with:
+          type: zip
+          filename: ../../rm8-windows.zip
+          directory: target/out
+      - name: upload windows artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-windows.zip
+          asset_name: rm8-windows.zip
+          asset_content_type: application/zip
