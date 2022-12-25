@@ -1,0 +1,19 @@
+name: Build & Release
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ["arm-unknown-linux-gnueabi", "aarch64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-gnu"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Build Deps
+        run: >
+          sudo apt install -y libsdl2-dev
+          cargo install cross --git https://github.com/cross-rs/cross
+      - name: Build
+        run: cross build --target ${{ matrix.version }} --release
