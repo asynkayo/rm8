@@ -65,8 +65,7 @@ impl Audio {
 		} else {
 			for i in 0..audio.num_audio_capture_devices().unwrap_or(0) {
 				if let Ok(device_name) = audio.audio_capture_device_name(i) {
-					// println!("Found: {}", device_name);
-					if device_name.starts_with("M8") {
+					if device_name.contains("M8") {
 						return Self::real_open(audio, device_name, samples);
 					}
 				}
