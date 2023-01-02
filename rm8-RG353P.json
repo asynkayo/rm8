@@ -1,0 +1,117 @@
+{
+  "app": {
+    "fullscreen": false,
+    "font": "Uppercase",
+    "zoom": 4,
+    "key_sensibility": 60,
+    "fps": 60,
+    "show_fps": false,
+    "reconnect": false
+  },
+  "theme": {
+    "screen": "#000000",
+    "text_default": "#8c8cba",
+    "text_value": "#fafafa",
+    "text_title": "#32ecff",
+    "text_info": "#60608e",
+    "cursor": "#32ecff",
+    "octave_bg": "#0000ff",
+    "octave_fg": "#ffffff",
+    "velocity_bg": "#ff0000",
+    "velocity_fg": "#ffffff"
+  },
+  "m8": {
+    "up": "Up",
+    "down": "Down",
+    "left": "Left",
+    "right": "Right",
+    "edit": "Left Ctrl",
+    "option": "Left Alt",
+    "shift": "Left Shift",
+    "play": "Space"
+  },
+  "rm8": {
+    "keyjazz": "Return",
+    "velocity_minus": "-",
+    "velocity_plus": "=",
+    "octave_minus": "[",
+    "octave_plus": "]"
+  },
+  "joysticks": {
+    "190000004b4800000111000000010000": {
+      "buttons": {
+        "15": "Left",
+        "16": "Right",
+        "8": "Escape",
+        "14": "Down",
+        "0": "Option",
+        "1": "Edit",
+        "2": "Play",
+        "17": "Escape",
+        "3": "Shift",
+        "13": "Up",
+        "9": "Config"
+      },
+      "axes": {
+        "4": {
+          "sensibility": 20000
+        },
+        "5": {
+          "sensibility": 20000
+        },
+        "3": {
+          "sensibility": 20000
+        },
+        "2": {
+          "sensibility": 20000
+        },
+        "0": {
+          "negative": "Left",
+          "positive": "Right",
+          "sensibility": 20000
+        },
+        "1": {
+          "negative": "Up",
+          "positive": "Down",
+          "sensibility": 20000
+        }
+      }
+    }
+  },
+  "keyjazz": {
+    "Q": 12,
+    "U": 23,
+    "9": 25,
+    "X": 2,
+    "O": 26,
+    "V": 5,
+    "Z": 0,
+    "7": 22,
+    "0": 27,
+    ";": 15,
+    "C": 4,
+    "/": 16,
+    "J": 10,
+    "W": 14,
+    "6": 20,
+    "S": 1,
+    "D": 3,
+    "2": 13,
+    "P": 28,
+    "3": 15,
+    "H": 8,
+    "I": 24,
+    ",": 12,
+    "E": 16,
+    "G": 6,
+    "N": 9,
+    "B": 7,
+    "L": 13,
+    "R": 17,
+    "Y": 21,
+    "M": 11,
+    "5": 18,
+    "T": 19,
+    ".": 14
+  }
+}
