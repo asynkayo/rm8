@@ -16,7 +16,7 @@ mkdir M8
 cd M8
 
 # ZIP_URL come from releases: x86-64
-wget ZIP_URL -o r.zip
+wget ZIP_URL -O r.zip
 unzip r.zip
 rm r.zip
 
@@ -55,7 +55,7 @@ mkdir M8
 cd M8
 
 # ZIP_URL come from releases: x86-64
-wget ZIP_URL -o r.zip
+wget ZIP_URL -O r.zip
 unzip r.zip
 rm r.zip
 ```
