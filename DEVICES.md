@@ -15,7 +15,7 @@ cd ~/roms/ports
 mkdir M8
 cd M8
 
-# ZIP_URL come from releases: x86-64
+# ZIP_URL come from releases: aarch64
 wget ZIP_URL -O r.zip
 unzip r.zip
 rm r.zip
