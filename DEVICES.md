@@ -20,6 +20,8 @@ wget ZIP_URL -o r.zip
 unzip r.zip
 rm r.zip
 
+cp rm8-RG353P.json rm8.json
+
 # make it look like script below
 nano ../M8.sh
 ```
