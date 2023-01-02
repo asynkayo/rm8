@@ -37,6 +37,8 @@ cd "${DIR}/M8"
 ./rm8
 ```
 
+Input is mapped so SELECT exits, and START is CONFIG. Dpad and analog works, and face-buttons are for editing (similar to real M8.)
+
 
 ## Steamdeck
 
