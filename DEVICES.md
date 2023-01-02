@@ -16,6 +16,7 @@ If the latency is too high, try adding `-smp 512` param.
 
 ## Linux
 
+- Get latest [release](https://github.com/konsumer/rm8/releases) for your arch (aarch64/x86_64)
 - Install SDL2 (on ubuntu/debian/etc: `apt install libsdl2-2.0-0`)
 - Make sure you have read/write permissions on the device (`./rm8 -list` with it plugged in to see devices) Generally just adding yourself to the group that owns the device will do it.
 
