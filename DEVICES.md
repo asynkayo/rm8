@@ -1,5 +1,18 @@
 Here are some hints to get rm8 running on various devices.
 
+## Mac
+
+- [Install Homebrew](https://brew.sh/)
+- Open a terminal and run `brew install sdl2`
+- Get latest [release](https://github.com/konsumer/rm8/releases) for your mac (M1/x86_64)
+- open it and go to settings/privacy and ok it running an unsigned app
+
+## Linux
+
+- Install SDL2 (on ubuntu/debian/etc: `apt install libsdl2-2.0-0`)
+- Make sure you have read/write permissions on the device (`./rm8 -list` with it plugged in to see devices) Generally just adding yourself to the group that owns the device will do it.
+
+
 ## Anbernic RG353P
 
 ![RG353P](https://user-images.githubusercontent.com/83857/209609257-1da08aca-d8fa-48cc-98ed-e3e54d89136e.jpeg)
