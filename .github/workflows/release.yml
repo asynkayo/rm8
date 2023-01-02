@@ -22,6 +22,7 @@ jobs:
           body: This is an automated release for ${{ github.ref }}.
         env:
           GITHUB_TOKEN: ${{ github.token }}
+  
   build-windows:
     runs-on: windows-latest
     needs: create_release
@@ -53,6 +54,7 @@ jobs:
           asset_path: rm8-windows.zip
           asset_name: rm8-windows.zip
           asset_content_type: application/zip
+  
   build-mac:
     runs-on: macos-latest
     needs: create_release
@@ -71,6 +73,7 @@ jobs:
           asset_path: rm8-mac-x86_64.zip
           asset_name: rm8-mac-x86_64.zip
           asset_content_type: application/zip
+  
   build-linux:
     needs: create_release
     runs-on: ubuntu-latest
@@ -115,7 +118,7 @@ jobs:
         with:
           arch: aarch64
       - name: Zip aarch64
-        run: cp target/aarch64-unknown-linux-gnueabihf/release/rm8 . && zip -r rm8-linux-aarch64.zip rm8 *.json README.md
+        run: cp target/aarch64-unknown-linux-gnu/release/rm8 . && zip -r rm8-linux-aarch64.zip rm8 *.json README.md
       - name: upload rm8-linux-aarch64 artifact
         uses: actions/upload-release-asset@v1
         env:
