@@ -1,5 +1,9 @@
 Here are some hints to get rm8 running on various devices.
 
+## Windows
+
+It should work, as it is, but if you get an error about `VCRUNTIME140` install [this](https://www.microsoft.com/en-us/download/details.aspx?id=52685).
+
 ## Mac
 
 - [Install Homebrew](https://brew.sh/)
