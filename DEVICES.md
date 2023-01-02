@@ -1,4 +1,4 @@
-Here are some hints to 
+Here are some hints to get rm8 running on various devices.
 
 ## Anbernic RG353P
 
