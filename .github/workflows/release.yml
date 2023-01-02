@@ -22,64 +22,6 @@ jobs:
           body: This is an automated release for ${{ github.ref }}.
         env:
           GITHUB_TOKEN: ${{ github.token }}
-  build-linux:
-    runs-on: ubuntu-latest
-    needs: create_release
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build x86_64-unknown-linux-gnu
-        run: sudo scripts/build_linux.sh rm8-linux-x86_64.zip
-      - name: upload rm8-linux-x86_64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: rm8-linux-x86_64.zip
-          asset_name: rm8-linux-x86_64.zip
-          asset_content_type: application/zip
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Build aarch64-unknown-linux-gnu
-        run: docker run --platform linux/arm64 --rm -v "${PWD}:/work" -w /work rust /work/scripts/build_linux.sh rm8-linux-aarch64.zip
-      - name: upload rm8-linux-aarch64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: rm8-linux-aarch64.zip
-          asset_name: rm8-linux-aarch64.zip
-          asset_content_type: application/zip
-      - name: Build arm-unknown-linux-gnu
-        run: docker run --platform linux/arm --rm -v "${PWD}:/work" -w /work rust /work/scripts/build_linux.sh rm8-linux-arm32.zip
-      - name: upload rm8-linux-arm32 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: rm8-linux-arm32.zip
-          asset_name: rm8-linux-arm32.zip
-          asset_content_type: application/zip
-  build-mac:
-    runs-on: macos-latest
-    needs: create_release
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Build Deps
-        run: brew install sdl2
-      - name: Build x86_64-apple-darwin
-        run: cargo build --release && cp target/release/rm8 . && zip -r rm8-mac.zip rm8 *.json README.md
-      - name: upload x86_64-apple-darwin artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: rm8-mac.zip
-          asset_name: rm8-mac.zip
-          asset_content_type: application/zip
   build-windows:
     runs-on: windows-latest
     needs: create_release
@@ -110,4 +52,76 @@ jobs:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: rm8-windows.zip
           asset_name: rm8-windows.zip
+          asset_content_type: application/zip
+  build-mac:
+    runs-on: macos-latest
+    needs: create_release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Build Deps
+        run: brew install sdl2
+      - name: Build x86_64-apple-darwin
+        run: cargo build --release && cp target/release/rm8 . && zip -r rm8-mac-x86_64.zip rm8 *.json README.md
+      - name: upload x86_64-apple-darwin artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-mac-x86_64.zip
+          asset_name: rm8-mac-x86_64.zip
+          asset_content_type: application/zip
+  build-linux:
+    needs: create_release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      
+      - name: Build M8 x86_64
+        uses: konsumer/action-build-rm8@v1
+        with:
+          arch: x86_64
+      - name: Zip x86_64
+        run: cp target/x86_64-unknown-linux-gnu/release/rm8 . && zip -r rm8-linux-x86_64.zip rm8 *.json README.md
+      - name: upload rm8-linux-x86_64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-x86_64.zip
+          asset_name: rm8-linux-x86_64.zip
+          asset_content_type: application/zip
+
+      - name: Build M8 armv7
+        uses: konsumer/action-build-rm8@v1
+        with:
+          arch: armv7
+      - name: Zip armv7
+        run: cp target/armv7-unknown-linux-gnueabihf/release/rm8 . && zip -r rm8-linux-armv7.zip rm8 *.json README.md
+      - name: upload rm8-linux-arm7 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-armv7.zip
+          asset_name: rm8-linux-armv7.zip
+          asset_content_type: application/zip
+
+      - name: Build M8 aarch64
+        uses: konsumer/action-build-rm8@v1
+        with:
+          arch: aarch64
+      - name: Zip aarch64
+        run: cp target/aarch64-unknown-linux-gnueabihf/release/rm8 . && zip -r rm8-linux-aarch64.zip rm8 *.json README.md
+      - name: upload rm8-linux-aarch64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-aarch64.zip
+          asset_name: rm8-linux-aarch64.zip
           asset_content_type: application/zip
