@@ -39,6 +39,7 @@ jobs:
         run: cargo build --release && mkdir target/out && copy target/release/rm8.exe target/out && copy SDL2.dll target/out && copy *.json target/out && copy README.md target/out
         env:
           LIB: SDL2-2.26.1\lib\x64\
+          CARGO_CFG_TARGET_FEATURE: crt-static
       - name: Archive Release
         uses: thedoctor0/zip-release@main
         with:
