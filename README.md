@@ -6,6 +6,9 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
 
 # Config
 
+You can get device-specific tips in [DEVICES](https://github.com/konsumer/rm8/blob/master/DEVICES.md).
+
+
 [SDL scancodes](https://github.com/libsdl-org/SDL/blob/main/include/SDL_scancode.h)
 
 [SDL keycodes](https://github.com/libsdl-org/SDL/blob/main/include/SDL_keycode.h)
