@@ -4,6 +4,8 @@ Here are some hints to get rm8 running on various devices.
 
 It should work, as it is, but if you get an error about `VCRUNTIME140` install [this](https://www.microsoft.com/en-us/download/details.aspx?id=52685).
 
+If the latency is too high, try adding `-smp 512` param.
+
 ## Mac
 
 - [Install Homebrew](https://brew.sh/)
