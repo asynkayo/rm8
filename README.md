@@ -33,8 +33,8 @@ You can get device-specific tips in [DEVICES](https://github.com/konsumer/rm8/bl
     SHIFT     = LSHIFT       # M8's `SHIFT` key
     PLAY      = SPACE        # M8's `PLAY` key
 
-    EDIT      = LCTRL        # M8's `EDIT` key
-    OPTION    = LALT         # M8's `OPTION` key
+    EDIT      = Z            # M8's `EDIT` key
+    OPTION    = X            # M8's `OPTION` key
 
     KEYJAZZ   = RETURN       # Enter keyjazz mode
     OCTAVE+   = RIGHTBRACKET # Increment octave

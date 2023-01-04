@@ -24,8 +24,8 @@
     "down": "Down",
     "left": "Left",
     "right": "Right",
-    "edit": "Left Ctrl",
-    "option": "Left Alt",
+    "edit": "Z",
+    "option": "X",
     "shift": "Left Shift",
     "play": "Space"
   },
