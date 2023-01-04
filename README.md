@@ -19,7 +19,7 @@ You can get device-specific tips in [DEVICES](https://github.com/konsumer/rm8/bl
 
 `Alt + Shift + R key` will do a full reset of the display (disconnect + enable and reset display)
 
-`Alt + C` will enter config mode.
+`Alt + C` will enter config mode. THink of this as "extreme dev secret everything-broke menu". Many options will crash rm8.
 
 `Escape` will either quit the application or fullscreen mode or config mode or key remapping mode.
 
