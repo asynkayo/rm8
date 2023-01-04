@@ -8,7 +8,7 @@ If the latency is too high, try adding `-smp 512` param.
 
 ## Mac
 
-- [Install Homebrew](https://brew.sh/)
+- [Install Homebrew](https://brew.sh/), a great general tool for managing libraries and stuff
 - Open a terminal and run `brew install sdl2`
 - Get latest [release](https://github.com/konsumer/rm8/releases) for your mac (M1/x86_64)
 - open it and go to settings/privacy and ok it running an unsigned app
