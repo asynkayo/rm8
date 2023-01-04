@@ -12,7 +12,7 @@ If the latency is too high, try adding `-smp 512` param.
 - Open a terminal and run `brew install sdl2`
 - Get latest [release](https://github.com/konsumer/rm8/releases) for your mac (M1/x86_64)
 - open it and go to settings/privacy and ok it running an unsigned app
-- Currently, sound is not working on Mac, but you can open "Quicktime Player" and choose "New Audio Recording" in "File" menu, then select "M8" and turn up the monitor slider. I'd like to figure out why it doesn't work like other platforms, but for now this will work (similar to m8c)
+- If sound is not working, then the loopback is failing (whcih sometimes happens on mac, for some reason) but you can open "Quicktime Player" and choose "New Audio Recording" in "File" menu, then select "M8" and turn up the monitor slider. I'd like to figure out why it doesn't work like other platforms, but for now this will work (similar to m8c)
 
 ## Linux
 
