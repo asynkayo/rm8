@@ -65,10 +65,9 @@ Input is mapped so SELECT exits, and START is CONFIG. Dpad and analog works, and
 
 ![steamdeck](https://user-images.githubusercontent.com/83857/209611069-7cf42ce3-7690-42ba-8d52-d511f68faf95.jpeg)
 
-- [setup ssh](https://shendrick.net/Gaming/2022/05/30/sshonsteamdeck.html)
 - Copy URL for [latest rm8-linux-x86_64.zip release](https://github.com/konsumer/rm8/releases)
 
-On your computer `ssh deck@IP_ADDRESS`, or you can use desktop-mode terminal:
+On your computer `ssh deck@IP_ADDRESS` ([setup ssh](https://shendrick.net/Gaming/2022/05/30/sshonsteamdeck.html)), or you can use desktop-mode terminal:
 
 ```
 cd ~
@@ -81,5 +80,5 @@ unzip r.zip
 rm r.zip
 ```
 
-- in Desktop-mode, open steam add non-steam game for `/home/deck/M8/rm8` and set working-dir to `/home/deck/M8`
+- in Desktop-mode, open steam, add non-steam game for `/home/deck/M8/rm8` and set working-dir to `/home/deck/M8`
 - In controller-configuration, choose the `rm8` community-profile I (konsumer) made.
