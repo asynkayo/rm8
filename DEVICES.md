@@ -78,6 +78,9 @@ cd M8
 wget ZIP_URL -O r.zip
 unzip r.zip
 rm r.zip
+
+# add main user to group that owns M8
+sudo usermod -G uucp deck
 ```
 
 - in Desktop-mode, open steam, add non-steam game for `/home/deck/M8/rm8` and set working-dir to `/home/deck/M8`
