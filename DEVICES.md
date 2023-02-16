@@ -85,3 +85,4 @@ sudo usermod -G uucp deck
 
 - in Desktop-mode, open steam, add non-steam game for `/home/deck/M8/rm8` and set working-dir to `/home/deck/M8`
 - In controller-configuration, choose the `rm8` community-profile I (konsumer) made.
+- Reboot
