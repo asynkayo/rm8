@@ -21,9 +21,11 @@ If the latency is too high, try adding `-smp 512` param.
 - Make sure you have read/write permissions on the device (`./rm8 -list` with it plugged in to see devices) Generally just adding yourself to the group that owns the device will do it.
 
 
-## Anbernic RG353P
+## Anbernic RG353P / RG353V
 
-![RG353P](https://user-images.githubusercontent.com/83857/209609257-1da08aca-d8fa-48cc-98ed-e3e54d89136e.jpeg)
+| RG353P      | RG353V |
+| ----------- | ----------- |
+| <img src="https://user-images.githubusercontent.com/83857/209609257-1da08aca-d8fa-48cc-98ed-e3e54d89136e.jpeg " width=450px>     |  <img src="https://user-images.githubusercontent.com/4543448/230634284-e7a50736-167e-4dba-9113-20467937c82b.jpg" width=450px>       |
 
 - Install [JELOS](https://github.com/JustEnoughLinuxOS/distribution)
 - In network-settings enable wifi & ssh
@@ -41,7 +43,11 @@ wget ZIP_URL -O r.zip
 unzip r.zip
 rm r.zip
 
+# For RG353P
 cp rm8-RG353P.json rm8.json
+
+# For RG353V
+cp rm8-RG353V.json rm8.json 
 
 # make it look like script below
 nano ../M8.sh
