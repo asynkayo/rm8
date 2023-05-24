@@ -1,3 +1,6 @@
+> **Update**: I have stopped working on this version, and recommend [m8c](https://github.com/laamaa/m8c). It's definitely more mature, and has more cool stuff implemented. They now have support for similar (hacky) audio-routing in SDL, which was the original purpose of this, for me (easier config of auto-routing.)
+
+
 # RM8
 
 Remote display for the [Dirtywave M8](https://dirtywave.com/)
