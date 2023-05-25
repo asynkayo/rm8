@@ -1,3 +1,6 @@
+> **Update**: I have stopped working on this version, and recommend [m8c](https://github.com/laamaa/m8c). It's definitely more mature, and has more cool stuff implemented. They now have support for similar (hacky) audio-routing in SDL, which was the original purpose of this, for me (easier config of auto-routing.)
+
+
 # RM8
 
 Remote display for the [Dirtywave M8](https://dirtywave.com/)
@@ -5,6 +8,9 @@ Remote display for the [Dirtywave M8](https://dirtywave.com/)
 I first tried M8WebDisplay then discovered m8c and decided to use it as a starting point for my own version in rust..
 
 # Config
+
+You can get device-specific tips in [DEVICES](https://github.com/konsumer/rm8/blob/master/DEVICES.md).
+
 
 [SDL scancodes](https://github.com/libsdl-org/SDL/blob/main/include/SDL_scancode.h)
 
@@ -16,7 +22,7 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
 
 `Alt + Shift + R key` will do a full reset of the display (disconnect + enable and reset display)
 
-`Alt + C` will enter config mode.
+`Alt + C` will enter config mode. THink of this as "extreme dev secret everything-broke menu". Many options will crash rm8.
 
 `Escape` will either quit the application or fullscreen mode or config mode or key remapping mode.
 
@@ -30,8 +36,8 @@ I first tried M8WebDisplay then discovered m8c and decided to use it as a starti
     SHIFT     = LSHIFT       # M8's `SHIFT` key
     PLAY      = SPACE        # M8's `PLAY` key
 
-    EDIT      = LCTRL        # M8's `EDIT` key
-    OPTION    = LALT         # M8's `OPTION` key
+    EDIT      = Z            # M8's `EDIT` key
+    OPTION    = X            # M8's `OPTION` key
 
     KEYJAZZ   = RETURN       # Enter keyjazz mode
     OCTAVE+   = RIGHTBRACKET # Increment octave

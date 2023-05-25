@@ -1,0 +1,131 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: create_release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          draft: false
+          prerelease: false
+          release_name: Automated Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+          body: This is an automated release for ${{ github.ref }}.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+  
+  build-windows:
+    runs-on: windows-latest
+    needs: create_release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download SDL
+        uses: suisei-cn/actions-download-file@v1.3.0
+        with:
+          url: "https://github.com/libsdl-org/SDL/releases/download/release-2.26.1/SDL2-devel-2.26.1-VC.zip"
+          target: .
+      - name: Unzip SDL
+        run: unzip -a SDL2-devel-2.26.1-VC.zip && copy SDL2-2.26.1\lib\x64\SDL2.dll .
+      - name: Build x86_64-pc-windows-gnu
+        run: cargo build --release && mkdir target/out && copy target/release/rm8.exe target/out && copy SDL2.dll target/out && copy *.json target/out && copy README.md target/out
+        env:
+          LIB: SDL2-2.26.1\lib\x64\
+          CARGO_CFG_TARGET_FEATURE: crt-static
+      - name: Archive Release
+        uses: thedoctor0/zip-release@main
+        with:
+          type: zip
+          filename: ../../rm8-windows.zip
+          directory: target/out
+      - name: upload windows artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-windows.zip
+          asset_name: rm8-windows.zip
+          asset_content_type: application/zip
+  
+  build-mac:
+    runs-on: macos-latest
+    needs: create_release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Build Deps
+        run: brew install sdl2
+      - name: Build x86_64-apple-darwin
+        run: cargo build --release && cp target/release/rm8 . && zip -r rm8-mac-x86_64.zip rm8 *.json README.md
+      - name: upload x86_64-apple-darwin artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-mac-x86_64.zip
+          asset_name: rm8-mac-x86_64.zip
+          asset_content_type: application/zip
+  
+  build-linux:
+    needs: create_release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      
+      - name: Build M8 x86_64
+        uses: konsumer/action-build-rm8@v1
+        with:
+          arch: x86_64
+      - name: Zip x86_64
+        run: cp target/x86_64-unknown-linux-gnu/release/rm8 . && zip -r rm8-linux-x86_64.zip rm8 *.json README.md
+      - name: upload rm8-linux-x86_64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-x86_64.zip
+          asset_name: rm8-linux-x86_64.zip
+          asset_content_type: application/zip
+
+      - name: Build M8 armv7
+        uses: konsumer/action-build-rm8@v1
+        with:
+          arch: armv7
+      - name: Zip armv7
+        run: cp target/armv7-unknown-linux-gnueabihf/release/rm8 . && zip -r rm8-linux-armv7.zip rm8 *.json README.md
+      - name: upload rm8-linux-arm7 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-armv7.zip
+          asset_name: rm8-linux-armv7.zip
+          asset_content_type: application/zip
+
+      - name: Build M8 aarch64
+        uses: konsumer/action-build-rm8@v1
+        with:
+          arch: aarch64
+      - name: Zip aarch64
+        run: cp target/aarch64-unknown-linux-gnu/release/rm8 . && zip -r rm8-linux-aarch64.zip rm8 *.json README.md
+      - name: upload rm8-linux-aarch64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: rm8-linux-aarch64.zip
+          asset_name: rm8-linux-aarch64.zip
+          asset_content_type: application/zip

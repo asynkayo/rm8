@@ -86,8 +86,8 @@ impl Default for M8KeyboardConfig {
 			down: SdlKeycode::Down.into(),
 			left: SdlKeycode::Left.into(),
 			right: SdlKeycode::Right.into(),
-			edit: SdlKeycode::LCtrl.into(),
-			option: SdlKeycode::LAlt.into(),
+			edit: SdlKeycode::Z.into(),
+			option: SdlKeycode::X.into(),
 			shift: SdlKeycode::LShift.into(),
 			play: SdlKeycode::Space.into(),
 		}
